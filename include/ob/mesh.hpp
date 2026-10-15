@@ -25,15 +25,13 @@ struct Mesh {
   MatrixXd N;   // #F x 3 unit face normals (zero row for degenerate faces)
   VectorXd A;   // #F face areas
   MatrixXd B;   // #F x 3 face barycenters (v1+v2+v3)/3
-  MatrixXd P1;  // #F x 3 first vertex of each face (what the dissertation's
-                //          MATLAB code used in the height weight, App. A.1)
   double signed_volume = 0.0;
   int boundary_edges = 0;  // 0 => closed (watertight in the combinatorial sense)
   bool flipped = false;    // true if F was reoriented to make the volume positive
 
   void compute() {
     const int m = static_cast<int>(F.rows());
-    N.resize(m, 3); A.resize(m); B.resize(m, 3); P1.resize(m, 3);
+    N.resize(m, 3); A.resize(m); B.resize(m, 3);
     signed_volume = 0.0;
     for (int f = 0; f < m; ++f) {
       const Vector3d a = V.row(F(f, 0)), b = V.row(F(f, 1)), c = V.row(F(f, 2));
@@ -42,7 +40,6 @@ struct Mesh {
       A(f) = 0.5 * nx;
       N.row(f) = nx > 0 ? Vector3d(x / nx) : Vector3d::Zero();
       B.row(f) = (a + b + c) / 3.0;
-      P1.row(f) = a;
       signed_volume += a.dot(b.cross(c)) / 6.0;  // divergence theorem
     }
   }

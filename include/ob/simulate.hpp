@@ -122,19 +122,4 @@ inline PrintEstimate estimate_print(const MatrixXd& W, const MatrixXi& F, const 
   return E;
 }
 
-// Ablation objective: support volume of the proxy as a function of d
-// (not a published method; see objectives.hpp). `scale` = mesh units -> mm.
-inline std::unique_ptr<Objective> make_support_volume_objective(const Mesh& M, double scale,
-                                                                PrintParams P) {
-  return std::make_unique<Callback>("support-volume", [&M, scale, P](const Vector3d& dd) {
-    const Vector3d d = dd.normalized();
-    const Vector3d a = std::abs(d.x()) < 0.9 ? Vector3d::UnitX() : Vector3d::UnitY();
-    const Vector3d u = d.cross(a).normalized(), v = d.cross(u);
-    Eigen::Matrix3d R; R.row(0) = u; R.row(1) = v; R.row(2) = d;
-    MatrixXd W = (M.V * R.transpose()) * scale;
-    W.col(2).array() -= W.col(2).minCoeff();
-    return estimate_print(W, M.F, P).support_volume_mm3;
-  });
-}
-
 }  // namespace ob

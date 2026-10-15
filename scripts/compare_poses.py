@@ -31,12 +31,11 @@ import matplotlib.pyplot as plt
 
 OURS_RGB = "0.45,0.80,0.68"
 OTHER_RGB = "0.75,0.75,0.78"
-DEFAULT_POSES = ["initial", "castro-eq", "alexander", "ezair", "goguelin-len", "goguelin-vol",
-                 "support-volume", "tweaker3-sur", "tweaker3-vol"]
+DEFAULT_POSES = ["initial", "castro-eq", "ezair", "goguelin-len", "alexander",
+                 "tweaker3-vol", "tweaker3-sur"]
 LABELS = {"initial": "usual", "castro-eq": "ours", "alexander": "Alexander", "ezair": "Ezair",
-          "goguelin-len": "Goguelin (len)", "goguelin-vol": "Goguelin (vol)",
-          "support-volume": "support vol.", "tweaker3-sur": "Tweaker (sur)",
-          "tweaker3-vol": "Tweaker (vol)", "castro-code": "castro-code"}
+          "goguelin-len": "Goguelin", "tweaker3-sur": "Tweaker-3 (surf.)",
+          "tweaker3-vol": "Tweaker-3 (vol.)"}
 
 
 def mesh_file(name):

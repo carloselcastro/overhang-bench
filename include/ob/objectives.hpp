@@ -2,12 +2,10 @@
 // object frame (unit vector; see mesh.hpp). Lower is better for all of them.
 //
 // Implemented here:
-//   castro-eq    Castro (2020), eq. (3.2.4) exactly as written: barycentric
-//                height minus the minimum z over ALL vertices, times face area,
-//                times the squared z-component of the rotated normal.
-//   castro-code  Castro (2020), the MATLAB code of App. A.1 as it was run:
-//                the height weight uses only the first vertex of each face,
-//                and the minimum is taken over those first vertices.
+//   castro-eq    the proposed method, Eq. (5) of the paper (eq. (3.2.4) of
+//                Castro 2020): barycentric height minus the minimum z over all
+//                vertices, times face area, times the squared z-component of
+//                the rotated normal.
 //   alexander    Alexander, Allen & Dutta (1998), "Part orientation and build
 //                cost determination in layered manufacturing", CAD 30(5),
 //                as summarized in Castro (2020), Sec. 3.3, eq. (3.3.7).
@@ -44,20 +42,6 @@ class CastroEq : public Objective {
     const double minz = (M_.V * d).minCoeff();           // min_z^V after rotation
     const VectorXd h = (M_.B * d).array() - minz;        // e3^T R b_f - min_z^V
     const VectorXd nz = M_.N * d;                         // e3^T R n(f)
-    return (M_.A.array() * h.array() * nz.array().square()).sum();
-  }
- private:
-  const Mesh& M_;
-};
-
-class CastroCode : public Objective {
- public:
-  explicit CastroCode(const Mesh& M) : M_(M) {}
-  std::string name() const override { return "castro-code"; }
-  double eval(const Vector3d& d) const override {
-    const VectorXd z1 = M_.P1 * d;                        // Vh(F(:,1),:) rotated
-    const VectorXd h = z1.array() - z1.minCoeff();
-    const VectorXd nz = M_.N * d;
     return (M_.A.array() * h.array() * nz.array().square()).sum();
   }
  private:
@@ -196,20 +180,17 @@ class EzairSupportVolume : public Objective {
 // direction (their Fig. 1, eq. 1). Rays are cast downwards and stop at the first
 // collision with the mesh or with the build plate (the plane through the
 // lowest point of the part):
-//   length (eq. 2): sum over overhanging facets of the ray length from the
-//                   facet centroid;
-//   volume (eq. 3): sum over overhanging facets of (d1+d2+d3)/3 * A, with
-//                   d1..d3 the ray lengths from the three vertices and A the
-//                   (unprojected) facet area.
-// The paper found the length proxy the most effective. Values in mesh units.
+// the objective is their length measure (eq. 2), the sum over overhanging
+// facets of the ray length from the facet centroid, which they found the most
+// effective. Values in mesh units.
 class Goguelin : public Objective {
  public:
-  Goguelin(const Mesh& M, bool volume, double theta_crit_deg = 45.0)
-      : M_(M), volume_(volume), cos_crit_(std::cos(theta_crit_deg * M_PI / 180.0)) {
+  explicit Goguelin(const Mesh& M, double theta_crit_deg = 45.0)
+      : M_(M), cos_crit_(std::cos(theta_crit_deg * M_PI / 180.0)) {
     tree_.init(M_.V, M_.F);
     eps_ = 1e-7 * (M_.V.colwise().maxCoeff() - M_.V.colwise().minCoeff()).norm();
   }
-  std::string name() const override { return volume_ ? "goguelin-vol" : "goguelin-len"; }
+  std::string name() const override { return "goguelin-len"; }
   bool smooth() const override { return false; }
   double eval(const Vector3d& dd) const override {
     const Vector3d d = dd.normalized();
@@ -230,19 +211,12 @@ class Goguelin : public Objective {
     double s = 0;
     for (int f = 0; f < M_.F.rows(); ++f) {
       if (M_.A(f) <= 0 || c(f) > -cos_crit_) continue;  // normal outside the downward cone
-      if (!volume_) {
-        s += ray(M_.B.row(f), f);
-      } else {
-        double dsum = 0;
-        for (int k = 0; k < 3; ++k) dsum += ray(M_.V.row(M_.F(f, k)), f);
-        s += dsum / 3.0 * M_.A(f);
-      }
+      s += ray(M_.B.row(f), f);
     }
     return s;
   }
  private:
   const Mesh& M_;
-  bool volume_;
   double cos_crit_, eps_;
   igl::AABB<MatrixXd, 3> tree_;
 };
@@ -267,11 +241,9 @@ class Callback : public Objective {
 inline std::unique_ptr<Objective> make_objective(const std::string& name, const Mesh& M,
                                                  const AlexanderParams& ap = {}) {
   if (name == "castro-eq") return std::make_unique<CastroEq>(M);
-  if (name == "castro-code") return std::make_unique<CastroCode>(M);
   if (name == "alexander") return std::make_unique<Alexander>(M, ap);
   if (name == "ezair") return std::make_unique<EzairSupportVolume>(M);
-  if (name == "goguelin-len") return std::make_unique<Goguelin>(M, false, ap.overhang_deg);
-  if (name == "goguelin-vol") return std::make_unique<Goguelin>(M, true, ap.overhang_deg);
+  if (name == "goguelin-len") return std::make_unique<Goguelin>(M, ap.overhang_deg);
   throw std::runtime_error("unknown objective: " + name);
 }
 

@@ -1,8 +1,8 @@
 // overhang-bench — command-line benchmark.
 //
 //   bench --out results --size-mm 60 \
-//         --objectives castro-eq,castro-code,alexander \
-//         --searches grid,mcd-asrun,mcd,rcsp,sphere \
+//         --objectives castro-eq,alexander \
+//         --searches grid,mcd,rcsp,sphere \
 //         meshes/arm.obj meshes/bunny.off ...
 //
 // Writes:
@@ -46,8 +46,8 @@ int main(int argc, char** argv) {
   double size_mm = 60.0, grid_deg = 1.0, overhang = 45.0, cell = 0.5;
   int sphere_n = 20000;
   bool landscape = false, write_stl = true, y_up = false, local_minima = false;
-  std::vector<std::string> objectives{"castro-eq", "castro-code", "alexander"};
-  std::vector<std::string> searches{"grid", "mcd-asrun", "mcd", "rcsp", "sphere"};
+  std::vector<std::string> objectives{"castro-eq", "alexander"};
+  std::vector<std::string> searches{"grid", "mcd", "rcsp", "sphere"};
   std::vector<std::string> meshes;
   std::string poses_csv;  // extra poses from external methods: mesh,pose,t1,t2
   for (int i = 1; i < argc; ++i) {
@@ -123,14 +123,12 @@ int main(int argc, char** argv) {
 
     std::map<std::string, Result> best;
     for (const auto& on : objectives) {
-      auto obj = on == "support-volume" ? make_support_volume_objective(M, scale, pp)
-                                        : make_objective(on, M, ap);
+      auto obj = make_objective(on, M, ap);
       for (const auto& sn : searches) {
         Result r;
         std::vector<LocalRun> runs, *rp = local_minima ? &runs : nullptr;
         if (sn == "grid") r = grid_search(*obj, grid_deg * kPi / 180.0);
-        else if (sn == "mcd-asrun") r = multistart(*obj, starts_mcd(true), sn, rp);
-        else if (sn == "mcd") r = multistart(*obj, starts_mcd(false), sn, rp);
+        else if (sn == "mcd") r = multistart(*obj, starts_mcd(), sn, rp);
         else if (sn == "rcsp") r = multistart(*obj, starts_rcsp(), sn, rp);
         else if (sn == "sphere") r = sphere_search(*obj, sphere_n);
         else if (sn == "ezair") r = ezair_search(*obj);
@@ -170,9 +168,8 @@ int main(int argc, char** argv) {
     }
     // every objective evaluated at every pose (cross-comparison table)
     std::vector<std::unique_ptr<Objective>> all;
-    for (const char* n : {"castro-code", "castro-eq", "alexander", "ezair", "goguelin-len", "goguelin-vol"})
+    for (const char* n : {"castro-eq", "alexander", "ezair", "goguelin-len"})
       all.push_back(make_objective(n, M, ap));
-    all.push_back(make_support_volume_objective(M, scale, pp));
     for (auto& [pose, r] : poses)
       for (auto& o : all)
         fe << M.name << ',' << pose << ',' << o->name() << ',' << r.t1 << ',' << r.t2 << ','

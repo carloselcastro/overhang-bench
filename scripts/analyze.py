@@ -79,7 +79,7 @@ def main():
     w("| mesh | Table 4.2.1 (t1, t2) | objective | search | found (t1, t2) | angle to table (deg) |")
     w("|---|---|---|---|---|---|")
     for r in orient:
-        if r["mesh"] not in ref or r["objective"] not in ("castro-code", "castro-eq"):
+        if r["mesh"] not in ref or r["objective"] != "castro-eq":
             continue
         t1, t2 = float(r["t1"]), float(r["t2"])
         rt = ref[r["mesh"]]

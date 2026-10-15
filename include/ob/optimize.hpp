@@ -2,18 +2,16 @@
 //
 //   grid        exhaustive grid with step Delta (Castro 2020, Sec. 3.4 used pi/180:
 //               361 x 181 = 65341 evaluations).
-//   mcd-asrun   multistart "multiple constraint division" (Castro 2020, Sec. 4.2)
-//               with the starting points exactly as in App. A.1.1:
-//               x0 = ((ii+h)/2, (jj+h)/2), h = pi/4 (32 points).
-//   mcd         same, with the cell centers x0 = (ii+h/2, jj+h/2).
+//   mcd         multistart "multiple constraint division" (Castro 2020, Sec. 4.2):
+//               32 local solves from the centers x0 = (ii+h/2, jj+h/2) of the
+//               cells of size h = pi/4.
 //   rcsp        32 uniformly random starting points (Castro 2020, Sec. 4.2).
 //   sphere      Fibonacci-lattice sampling of S^2 (quasi-uniform in d, unlike the
 //               (t1,t2) grid which oversamples the poles) + local refinement.
 //
 // Local solver: L-BFGS-B (Byrd, Lu, Nocedal & Zhu 1995, SIAM J. Sci. Comput.
 // 16(5)) via LBFGSpp, with central-difference gradients (Nocedal & Wright 2006,
-// eq. 8.7; Castro 2020 eq. 4.1.1). This replaces MATLAB's fmincon
-// (interior-point + BFGS), which has no drop-in C++ equivalent.
+// eq. 8.7; Castro 2020 eq. 4.1.1).
 // Non-smooth objectives are refined with Nelder-Mead (Nelder & Mead 1965,
 // Computer Journal 7(4)) instead.
 #pragma once
@@ -154,12 +152,11 @@ inline Result multistart(const Objective& obj, const std::vector<Eigen::Vector2d
   return r;
 }
 
-inline std::vector<Eigen::Vector2d> starts_mcd(bool as_run, double h = kPi / 4) {
+inline std::vector<Eigen::Vector2d> starts_mcd(double h = kPi / 4) {
   std::vector<Eigen::Vector2d> s;
   for (double ii = -kPi; ii <= kPi - h + 1e-12; ii += h)
     for (double jj = -kPi / 2; jj <= kPi / 2 - h + 1e-12; jj += h)
-      s.emplace_back(as_run ? Eigen::Vector2d((ii + h) / 2, (jj + h) / 2)   // App. A.1.1
-                            : Eigen::Vector2d(ii + h / 2, jj + h / 2));     // cell center
+      s.emplace_back(ii + h / 2, jj + h / 2);  // cell center
   return s;
 }
 

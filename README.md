@@ -62,11 +62,10 @@ their PrusaSlicer estimates (support filament, total filament, time):
 The same view is the checkbox `side by side (all poses)` in the panel; the
 order is that of the `pose` combo. Pose names: `initial` is the usual
 orientation (the file as distributed, only placed on the plate), `castro-eq`
-the proposed method (Eq. 5), `alexander`, `ezair`, `goguelin-len`,
-`goguelin-vol` and `support-volume` the objective-based baselines,
-`tweaker3-sur`/`tweaker3-vol` the Tweaker-3 tool (`castro-code` is the variant
-of the dissertation's code, see
-[Known differences](#known-differences-between-the-dissertations-text-and-code)).
+the proposed method (Eq. 5), `ezair`, `goguelin-len` and `alexander` the
+methods of Ezair et al. (2015), Goguelin et al. (2021) and Alexander et al.
+(1998), `tweaker3-vol`/`tweaker3-sur` the Tweaker-3 tool with its volume and
+surface criteria (see [Methods](#methods)). These are the methods of the paper.
 
 For a labelled image instead (one row per mesh, one column per method, the
 proposed method in teal, PrusaSlicer's support filament and time under each
@@ -83,7 +82,7 @@ skipped.
 **Optimize from the command line.**
 
 ```bash
-./build/bench --out my_results --objectives castro-eq,castro-code,alexander \
+./build/bench --out my_results --objectives castro-eq,alexander \
               --searches mcd,sphere meshes/cow.off meshes/bunny.off
 ```
 
@@ -150,12 +149,12 @@ distributed, read with z as the build direction, with no rotation. For Knight
 and Max, the dissertation's computations were made on the file rotated by
 90° about x (Max also by 180° about z); the manifest gives their angles
 converted to the frame of the distributed file, which describe the same
-physical orientation. With this manifest, `castro-code` reproduces Table 4.2.1.
+physical orientation.
 
 A mesh argument may carry a pre-rotation: `file@rx90,rz180` (degrees, fixed
 axes, applied left to right), e.g. for a file in the y-up convention. For a
 mesh whose frame is unknown, `scripts/find_prerotation.py` tries the 24
-axis-aligned rotations and reports the one whose `castro-code` optimum matches
+axis-aligned rotations and reports the one whose `castro-eq` optimum matches
 given angles:
 
 ```bash
@@ -185,11 +184,13 @@ support filament between 2.62 and 3.03 m. With `--slicer-threads 1` the
 same four slicings were identical, so all published numbers use it (raise
 `--jobs` to make up for it).
 
-**Pose of the proposed method.** The sliced pose of `castro-eq` and
-`castro-code` is the best minimizer of the two multistart strategies of the
-paper (`mcd`, `rcsp`); `grid`, `mcd-asrun` and `sphere` are run only for
-comparison (`POSE_SEARCHES` in `pipeline.py`). Every other objective uses the
-best result of its own searches.
+**Pose of the proposed method.** The sliced pose of `castro-eq` is the
+best minimizer of the two multistart strategies of the
+paper (`mcd`, `rcsp`); `grid` and `sphere` are run only for comparison
+(`POSE_SEARCHES` in `pipeline.py`). `ezair` uses the search scheme of Ezair et
+al.; `alexander` and `goguelin-len` use the `sphere` search with 4000
+directions (`--sphere-n`), in `run` as in `sweep`, so `results/` and the 45°
+configuration of `results_angles/` hold the same poses.
 
 **Support-angle sweep.** The overhang angle is a user setting of the slicer.
 `--overhang-deg` is measured from the vertical; the slicer script converts it
@@ -200,7 +201,7 @@ to PrusaSlicer's `support_material_threshold` (measured from the horizontal) as
 python scripts\pipeline.py sweep --base results --out results_angles --sizes 60 --angles 20,25,30,35,40,45,50,55,60 --prusa $PRUSA --tweaker ..\Tweaker-3\Tweaker.py --slicer-threads 1
 python scripts\plot_angle_sweep.py results_angles\sweep_summary.csv --out fig_angle_sweep
 ```
-`castro-*` and `ezair` have no angle parameter (same pose for every angle);
+`castro-eq` and `ezair` have no angle parameter (same pose for every angle);
 `alexander` and `goguelin-len` are re-optimized for each angle.
 
 The individual steps (`bench`, `slice_prusaslicer.py`, `run_tweaker.py`,
@@ -210,18 +211,16 @@ The individual steps (`bench`, `slice_prusaslicer.py`, `run_tweaker.py`,
 
 | id | definition |
 |---|---|
-| `castro-eq` | eq. (3.2.4) of Castro (2020) as written: barycentric height − min z over all vertices |
-| `castro-code` | the MATLAB code of App. A.1 as run: height of the *first vertex* of each face − min over those vertices |
+| `castro-eq` | the proposed method, Eq. (5) of the paper (eq. (3.2.4) of Castro 2020): face area × (barycentric height − min z over all vertices) × squared z-component of the normal |
 | `alexander` | Alexander, Allen & Dutta (1998), CAD 30(5):343–356, as summarized in Castro (2020) §3.3, eq. (3.3.7); z_t = p = q = 0.1 cm, R = 10, lengths in cm |
-| `goguelin-len`, `goguelin-vol` | Goguelin, Dhokia & Flynn (2021), Int. J. Computer Integrated Manufacturing 34(12):1263–1284, §3.3: facets whose normal lies within θ_crit of the downward direction; rays cast downwards to the first collision with the mesh or the plate; eq. (2) sum of centroid-ray lengths, eq. (3) Σ (d₁+d₂+d₃)/3 · A. Their optimizers (grid/random/Bayesian) are replaced by the `sphere` search |
+| `goguelin-len` | Goguelin, Dhokia & Flynn (2021), Int. J. Computer Integrated Manufacturing 34(12):1263–1284, §3.3: facets whose normal lies within θ_crit (= the slicer's overhang angle) of the downward direction; rays cast downwards from their centroids to the first collision with the mesh or the plate; eq. (2), the sum of the ray lengths. Their optimizers (grid/random/Bayesian) are replaced by the `sphere` search |
 | `ezair` | Ezair, Massarwi & Elber (2015), Computers & Graphics 51:117–124: support volume V(S) = V(T) − V(M), T the "top cover" down to the lowest point, no self-supporting angle (Def. 3.1, Cor. 3.2); z-buffer of 1024² pixels over the bounding-sphere square (their Alg. 1, on the CPU) |
-| `support-volume` | **ablation, not a published method**: the proxy's support volume (columns under faces beyond the overhang angle, down to the plate or the part) minimized directly |
 | `tweaker3-vol`, `tweaker3-sur` | Tweaker-3 (Schranz), extended mode, minimizing support volume / overhang surface |
-| `orca-orient` | OrcaSlicer/Bambu Studio `--orient 1` (weighted cost of overhang area, bottom contact, hull area, contour complexity, low-angle faces — OrcaSlicer wiki) |
+| `orca-orient` | optional, not in the paper or in `results/`: OrcaSlicer/Bambu Studio `--orient 1` (weighted cost of overhang area, bottom contact, hull area, contour complexity, low-angle faces — OrcaSlicer wiki) |
 
 All objectives depend on (θ₁, θ₂) only through *d* = R(θ₁,θ₂)ᵀe₃ =
 (−sin θ₂, sin θ₁ cos θ₂, cos θ₁ cos θ₂), i.e. they are functions on S².
-`castro-*` and `ezair` are homogeneous in the scale and have no overhang
+`castro-eq` and `ezair` are homogeneous in the scale and have no overhang
 parameter, so their optima do not depend on part size or overhang angle.
 
 ### Search strategies
@@ -229,32 +228,15 @@ parameter, so their optima do not depend on part size or overhang angle.
 | id | description |
 |---|---|
 | `grid` | exhaustive grid, step Δ (361 × 181 = 65 341 evaluations for Δ = π/180), as in §3.4 |
-| `mcd-asrun` | 32 local solves from the starting points of App. A.1.1, `x0 = ((ii+h)/2, (jj+h)/2)` |
-| `mcd` | same with the cell centres `x0 = (ii+h/2, jj+h/2)` |
+| `mcd` | multiple constraint division: 32 local solves from the centres `(ii+h/2, jj+h/2)` of the cells of size h = π/4 |
 | `rcsp` | 32 local solves from uniform random points (seed 1) |
 | `sphere` | Fibonacci lattice on S² (Gonzalez 2010) + local refinement of the 8 best samples |
 | `ezair` | Ezair et al.'s scheme: 5° sampling (72 × 36) + derivative-free coordinate search of Lucidi & Sciandrone (2002) from the 100 best samples |
 
 Local solvers: L-BFGS-B (Byrd, Lu, Nocedal & Zhu 1995) with central
 differences for smooth objectives; Nelder–Mead (1965) for non-smooth ones.
-MATLAB's `fmincon` (interior point + BFGS) has no drop-in C++ equivalent, so
-local results can differ from the dissertation in very flat valleys. The
-parameters of the Lucidi–Sciandrone search (γ = 1e-6, step factors 0.5,
+The parameters of the Lucidi–Sciandrone search (γ = 1e-6, step factors 0.5,
 initial step 2.5°, tolerance 1e-4 rad) are ours; Ezair et al. do not report them.
-
-## Known differences between the dissertation's text and code
-
-1. **Height weight.** Eq. (3.2.4) uses the barycentre of each face and the
-   minimum z over all vertices; the code (App. A.1.1–A.1.3) uses the first
-   vertex of each face for both. Both are implemented (`castro-eq`,
-   `castro-code`). The published angles are reproduced by `castro-code`.
-2. **MCD starting points.** `x0 = ((ii+h)/2, (jj+h)/2)` is not the cell centre;
-   with h = π/4 the 32 points cover only θ₁ ∈ [−3π/8, π/2], θ₂ ∈ [−π/8, π/4].
-3. **Normal orientation.** `normalsurf.m` computes (v₃−v₁)×(v₂−v₁), the opposite
-   of Def. 2.3.3. Harmless for eq. (3.2.4) (the normal enters squared), but it
-   matters for any method that tells upward from downward faces.
-4. **Frames.** For Knight and Max, the dissertation's angles refer to the file
-   rotated by 90° about x (see [Meshes and frames](#meshes-and-frames)).
 
 ## The proxy is not a slicer
 
@@ -287,7 +269,7 @@ pre-rotation after `@` must match the one used by `bench`, otherwise the stored
 angles refer to a different frame.
 
 Any other surface (OBJ, OFF, STL, PLY): without `--poses`/`--orientations` the
-viewer optimizes `castro-code`, `castro-eq` and `alexander` at startup.
+viewer optimizes `castro-eq` and `alexander` at startup.
 
 ```powershell
 .\build\viewer.exe "C:\path\to\part.stl"

@@ -50,16 +50,19 @@ std::vector<std::string> csv_split(const std::string& l) {
   return v;
 }
 
-// best (lowest f) row per objective for this mesh in orientations.csv
+// best (lowest f) row per objective for this mesh in orientations.csv; for
+// castro-eq only the two multistarts of the paper count (as in pipeline.py)
 std::vector<Pose> read_orientations(const std::string& path, const std::string& mesh) {
   std::ifstream in(path); std::string line; std::getline(in, line);
   const auto h = csv_split(line);
   auto col = [&](const std::string& k) { return int(std::find(h.begin(), h.end(), k) - h.begin()); };
-  const int cm = col("mesh"), co = col("objective"), c1 = col("t1"), c2 = col("t2"), cf = col("fval");
+  const int cm = col("mesh"), co = col("objective"), c1 = col("t1"), c2 = col("t2"), cf = col("fval"),
+            cs = col("search");
   std::map<std::string, std::pair<double, Pose>> best;
   while (std::getline(in, line)) {
     const auto v = csv_split(line);
     if (int(v.size()) <= cf || v[cm] != mesh) continue;
+    if (v[co] == "castro-eq" && v[cs] != "mcd" && v[cs] != "rcsp") continue;
     const double f = std::stod(v[cf]);
     if (!best.count(v[co]) || f < best[v[co]].first)
       best[v[co]] = {f, Pose{v[co], std::stod(v[c1]), std::stod(v[c2])}};
@@ -146,7 +149,7 @@ int main(int argc, char** argv) {
 
   AlexanderParams ap; ap.overhang_deg = overhang; ap.length_scale = scale / 10.0;
   std::vector<std::unique_ptr<Objective>> objs;
-  for (const char* n : {"castro-code", "castro-eq", "alexander"}) objs.push_back(make_objective(n, M, ap));
+  for (const char* n : {"castro-eq", "alexander"}) objs.push_back(make_objective(n, M, ap));
   // Ezair's V(S) at 256^2 pixels for the landscape only (the benchmark uses 1024^2)
   objs.push_back(std::make_unique<EzairSupportVolume>(M, 256));
 
@@ -162,7 +165,7 @@ int main(int argc, char** argv) {
     for (auto& p : read_orientations(orient_csv, M.name)) poses.push_back(p);
   } else {
     std::cerr << "no --poses/--orientations given: optimizing on S^2 (Fibonacci 20000 + local)...\n";
-    for (size_t k = 0; k < 3; ++k) {
+    for (size_t k = 0; k < 2; ++k) {
       auto& o = objs[k];
       const Result r = sphere_search(*o, 20000);
       poses.push_back({o->name(), r.t1, r.t2});
@@ -310,8 +313,8 @@ int main(int argc, char** argv) {
     std::vector<const char*> pnames; for (auto& p : poses) pnames.push_back(p.name.c_str());
     if (ImGui::Combo("pose", &cur_pose, pnames.data(), int(pnames.size()))) { show_pose(); apply_slice(); }
     if (ImGui::Checkbox("side by side (all poses)", &side_by_side)) show_compare(side_by_side);
-    const char* onames[] = {"castro-code", "castro-eq", "alexander", "ezair (256^2)"};
-    if (ImGui::Combo("landscape", &cur_obj, onames, 4)) show_landscape();
+    const char* onames[] = {"castro-eq", "alexander", "ezair (256^2)"};
+    if (ImGui::Combo("landscape", &cur_obj, onames, 3)) show_landscape();
     float ov = float(overhang);
     if (ImGui::SliderFloat("overhang (deg)", &ov, 20.f, 70.f)) {
       overhang = ov; pp.overhang_deg = ov; show_pose();

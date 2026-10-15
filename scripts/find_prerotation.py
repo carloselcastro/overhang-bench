@@ -4,7 +4,7 @@
     python scripts/find_prerotation.py meshes/heart.obj --t1 -2.6011 --t2 0.0370
 
 Tries the 24 axis-aligned rotations (the rotation group of the cube), optimizes
-`castro-code` in each frame (bench, S^2 search) and reports the angular
+`castro-eq` in each frame (bench, S^2 search) and reports the angular
 distance between the optimum found and the (t1, t2) of Table 4.2.1. The frame
 with a near-zero distance is the dissertation's; put its spec in the
 `prerotation` column of data/castro2020_meshes.csv.
@@ -63,7 +63,7 @@ def main():
     for spec in specs:
         out = tmp / (spec or "identity")
         arg = a.mesh + (f"@{spec}" if spec else "")
-        subprocess.run([bench, "--out", str(out), "--no-stl", "--objectives", "castro-code",
+        subprocess.run([bench, "--out", str(out), "--no-stl", "--objectives", "castro-eq",
                         "--searches", "sphere,mcd", arg], capture_output=True)
         rows = list(csv.DictReader(open(out / "orientations.csv", encoding="utf-8")))
         r = min(rows, key=lambda r: float(r["fval"]))

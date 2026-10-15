@@ -14,11 +14,11 @@ from pathlib import Path
 
 NAMES = {"arm": "Arm", "bunny": "Bunny", "camel_b": "Camel", "cow": "Cow", "horse_quad": "Horse",
          "decimated-knight": "Knight", "decimated-max": "Max", "heart": "Heart", "skull": "Skull"}
-HEAD = {"initial": ("Initial", ""), "castro-eq": ("Ours", ""), "castro-code": ("Ours", "(code)"),
+HEAD = {"initial": ("Initial", ""), "castro-eq": ("Ours", ""),
         "ezair": ("Ezair", "et al.~2015"), "goguelin-len": ("Goguelin", "et al.~2021"),
-        "goguelin-vol": ("Goguelin", "et al.~2021 (vol.)"), "alexander": ("Alexander", "et al.~1998"),
+        "alexander": ("Alexander", "et al.~1998"),
         "tweaker3-vol": ("Tweaker-3", "(volume)"), "tweaker3-sur": ("Tweaker-3", "(surface)"),
-        "support-volume": ("Support", "volume"), "orca-orient": ("OrcaSlicer", "auto-orient")}
+        "orca-orient": ("OrcaSlicer", "auto-orient")}
 
 
 def main():

@@ -15,18 +15,17 @@ Common options:
 
 `run` (one configuration):
   1. optimize every objective with its search strategies
-       castro-code, castro-eq, alexander : grid, mcd-asrun, mcd, rcsp, sphere
-       ezair, support-volume             : ezair (5-degree sampling + 100 DFO starts)
-       goguelin-len, goguelin-vol        : sphere
+       castro-eq             : grid, mcd, rcsp, sphere (the pose is the best of mcd, rcsp)
+       ezair                 : ezair (5-degree sampling + 100 DFO starts)
+       alexander, goguelin-len : sphere (--sphere-n directions + local refinement)
   2. write the initial STLs and run the external baselines on them
   3. evaluate every pose (proxy, STL, all objectives), slice them, write report.md
 
 `sweep` (sensitivity to part size and overhang angle): the optima of
-castro-code, castro-eq and ezair do not depend on either (the objectives are
+castro-eq and ezair do not depend on either (the objectives are
 homogeneous in the scale and have no angle parameter), so they are taken from
---base. Alexander (lengths in cm, overhang angle), goguelin-len (critical angle)
-and, with --reopt-support, the support-volume ablation are re-optimized for
-every configuration; the
+--base. Alexander (lengths in cm, overhang angle) and goguelin-len (critical
+angle) are re-optimized for every configuration, exactly as in `run`; the
 external baselines are re-run for every size. Every pose is then sliced with
 the configuration's overhang threshold. Writes <out>/sweep_summary.{csv,md}.
 """
@@ -79,8 +78,11 @@ def write_poses(path, rows):
 
 # The pose of the proposed method is the best minimizer of its two multistart
 # strategies (M.C.D. with cell centres, R.C.S.P.), as described in the paper;
-# grid, mcd-asrun and sphere are run only for comparison.
-POSE_SEARCHES = {"castro-code": {"mcd", "rcsp"}, "castro-eq": {"mcd", "rcsp"}}
+# grid and sphere are run only for comparison.
+POSE_SEARCHES = {"castro-eq": {"mcd", "rcsp"}}
+# objectives that depend on the overhang angle (and alexander also on the size):
+# optimized by `sphere` in `run` and re-optimized the same way in `sweep`
+REOPT = "alexander,goguelin-len"
 
 
 def best_poses(orient_csv, objectives=None):
@@ -144,12 +146,13 @@ def cmd_run(a):
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     meshes = manifest(a.meshes)
     (out / "orientations.csv").unlink(missing_ok=True)
-    groups = [("castro-code,castro-eq,alexander", "grid,mcd-asrun,mcd,rcsp,sphere"),
-              ("ezair,support-volume", "ezair"),
-              ("goguelin-len,goguelin-vol", "sphere")]
-    for objs, searches in groups:
+    # castro-eq's sphere search (20000 directions, bench's default) is only a check
+    groups = [("castro-eq", "grid,mcd,rcsp,sphere", []),
+              ("ezair", "ezair", []),
+              (REOPT, "sphere", ["--sphere-n", a.sphere_n])]
+    for objs, searches, extra in groups:
         sh([bench, "--out", out, "--size-mm", a.size_mm, "--overhang-deg", a.overhang_deg, "--no-stl",
-            "--objectives", objs, "--searches", searches, *[m for _, m in meshes]])
+            "--objectives", objs, "--searches", searches, *extra, *[m for _, m in meshes]])
     ext = external(initial_stls(bench, out, meshes, a.size_mm, a.overhang_deg), out, a)
     poses = []
     for n, _ in meshes:
@@ -165,11 +168,9 @@ def cmd_sweep(a):
     if not (base / "orientations.csv").exists():
         sys.exit(f"{base}/orientations.csv not found: run `pipeline.py run --out {base}` first")
     meshes = manifest(a.meshes)
-    # size/angle-independent optima; the support-volume ablation depends on both,
-    # so it enters the sweep only when re-optimized (--reopt-support)
-    fixed = best_poses(base / "orientations.csv", {"castro-code", "castro-eq", "ezair"})
+    # size/angle-independent optima
+    fixed = best_poses(base / "orientations.csv", {"castro-eq", "ezair"})
     # depend on the overhang angle (and alexander also on the size): re-optimized
-    reopt = "alexander,goguelin-len" + (",support-volume" if a.reopt_support else "")
     sizes = [float(x) for x in a.sizes.split(",")]
     angles = [float(x) for x in a.angles.split(",")]
     root = Path(a.out); root.mkdir(parents=True, exist_ok=True)
@@ -182,7 +183,7 @@ def cmd_sweep(a):
             print(f"\n=== {tag} ===", flush=True)
             (out / "orientations.csv").unlink(missing_ok=True)
             sh([bench, "--out", out, "--size-mm", size, "--overhang-deg", ang, "--no-stl",
-                "--objectives", reopt, "--searches", "sphere", "--sphere-n", a.sphere_n,
+                "--objectives", REOPT, "--searches", "sphere", "--sphere-n", a.sphere_n,
                 *[m for _, m in meshes]])
             if ext is None:  # external baselines depend on the size only
                 ext = external(initial_stls(bench, out, meshes, size, ang), out, a)
@@ -253,6 +254,8 @@ def main():
                        help="PrusaSlicer --threads (1 = single-threaded, deterministic if the slicer is)")
         p.add_argument("--slicer-repeats", type=int, default=1,
                        help="slice every pose N times and report median and min/max")
+        p.add_argument("--sphere-n", type=int, default=4000,
+                       help="directions of the sphere search for alexander and goguelin-len")
     r = sub.choices["run"]
     r.add_argument("--size-mm", type=float, default=60.0)
     r.add_argument("--overhang-deg", type=float, default=45.0)
@@ -260,9 +263,6 @@ def main():
     s.add_argument("--base", required=True, help="results folder of a previous `run`")
     s.add_argument("--sizes", default="40,60,100")
     s.add_argument("--angles", default="40,45,50")
-    s.add_argument("--sphere-n", type=int, default=4000)
-    s.add_argument("--reopt-support", action="store_true",
-                   help="re-optimize the support-volume ablation per configuration (slow)")
     a = ap.parse_args()
     cmd_run(a) if a.cmd == "run" else cmd_sweep(a)
 
