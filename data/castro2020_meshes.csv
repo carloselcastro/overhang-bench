@@ -1,0 +1,10 @@
+mesh,file,prerotation,source,table421_t1,table421_t2
+arm,arm.obj,,libigl-tutorial-data,-2.7444,0.0799
+bunny,bunny.off,,libigl-tutorial-data,-0.1788,0.5579
+camel_b,camel_b.obj,,libigl-tutorial-data,2.9598,-1.4669
+cow,cow.off,,libigl-tutorial-data,-1.5708,-0.0924
+horse_quad,horse_quad.obj,,libigl-tutorial-data,-1.4316,0.2639
+decimated-knight,decimated-knight.off,,libigl-tutorial-data; Table 4.2.1 angles converted to the frame of the distributed file (the dissertation computed them on the file rotated by rx90),0.0982,0.0074
+decimated-max,decimated-max.obj,,"libigl-tutorial-data; Table 4.2.1 angles converted to the frame of the distributed file (the dissertation computed them on the file rotated by rx90,rz180)",-1.8040,0.0235
+heart,heart.obj,,Sketchfab (ADOREZOOEY 2015) - download by hand into meshes/ (not redistributed),-2.6011,0.0370
+skull,skull.obj,,Sketchfab (AELLIS43 2014) - download by hand into meshes/ (not redistributed),3.1004,-0.4287

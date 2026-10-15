@@ -1,0 +1,282 @@
+// overhang-bench — interactive viewer (Polyscope).
+//
+//   viewer MESH[@prerotation] [--size-mm 60] [--overhang-deg 45]
+//          [--poses results/all_poses.csv]        (every method, incl. external)
+//          [--orientations results/orientations.csv] (optimizers only)
+//          [--prusaslicer results/prusaslicer.csv]
+//          [--screenshots DIR]     (headless: write PNGs and exit)
+//
+// Shows, for the initial pose and the best pose of each objective:
+//   * the part on the build plate, faces coloured by "needs support"
+//   * the vertical support columns of the proxy model (simulate.hpp)
+//   * a layer slider (slice plane at the current layer height)
+//   * each objective as a function on S^2, drawn on the sphere d(t1,t2) and on
+//     the (t1,t2) rectangle, with the optimum of every method marked
+//   * proxy estimates and, if given, PrusaSlicer's estimates for the pose
+#include "ob/mesh.hpp"
+#include "ob/objectives.hpp"
+#include "ob/optimize.hpp"
+#include "ob/simulate.hpp"
+
+#include "polyscope/polyscope.h"
+#include "polyscope/surface_mesh.h"
+#include "polyscope/curve_network.h"
+#include "polyscope/point_cloud.h"
+#include "polyscope/view.h"
+#include "imgui.h"
+
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <sstream>
+
+using namespace ob;
+
+namespace {
+
+struct Pose { std::string name; double t1 = 0, t2 = 0; };
+
+struct SlicerRow { double time_min = NAN, filament_mm = NAN, filament_g = NAN, support_mm = NAN; };
+
+std::vector<std::string> csv_split(const std::string& l) {
+  std::vector<std::string> v; std::stringstream ss(l); std::string t;
+  while (std::getline(ss, t, ',')) v.push_back(t);
+  return v;
+}
+
+// best (lowest f) row per objective for this mesh in orientations.csv
+std::vector<Pose> read_orientations(const std::string& path, const std::string& mesh) {
+  std::ifstream in(path); std::string line; std::getline(in, line);
+  const auto h = csv_split(line);
+  auto col = [&](const std::string& k) { return int(std::find(h.begin(), h.end(), k) - h.begin()); };
+  const int cm = col("mesh"), co = col("objective"), c1 = col("t1"), c2 = col("t2"), cf = col("fval");
+  std::map<std::string, std::pair<double, Pose>> best;
+  while (std::getline(in, line)) {
+    const auto v = csv_split(line);
+    if (int(v.size()) <= cf || v[cm] != mesh) continue;
+    const double f = std::stod(v[cf]);
+    if (!best.count(v[co]) || f < best[v[co]].first)
+      best[v[co]] = {f, Pose{v[co], std::stod(v[c1]), std::stod(v[c2])}};
+  }
+  std::vector<Pose> out;
+  for (auto& [k, p] : best) out.push_back(p.second);
+  return out;
+}
+
+std::map<std::string, SlicerRow> read_slicer(const std::string& path, const std::string& mesh) {
+  std::map<std::string, SlicerRow> out;
+  std::ifstream in(path); std::string line;
+  if (!std::getline(in, line)) return out;
+  const auto h = csv_split(line);
+  auto col = [&](const std::string& k) { return int(std::find(h.begin(), h.end(), k) - h.begin()); };
+  while (std::getline(in, line)) {
+    const auto v = csv_split(line);
+    if (v.size() < h.size() || v[col("mesh")] != mesh || v[col("status")] != "ok") continue;
+    SlicerRow r;
+    r.time_min = std::stod(v[col("time_min")]);
+    r.filament_mm = std::stod(v[col("filament_mm")]);
+    r.filament_g = std::stod(v[col("filament_g")]);
+    r.support_mm = std::stod(v[col("support_filament_mm")]);
+    out[v[col("pose")]] = r;
+  }
+  return out;
+}
+
+// (t1,t2) grid, as a sphere through d(t1,t2) and as a flat rectangle
+struct Landscape { MatrixXd S, P; MatrixXi F; int n1, n2; };
+Landscape make_landscape(int n1, int n2, const Vector3d& c_sphere, double r,
+                         const Vector3d& c_plane, double w) {
+  Landscape L; L.n1 = n1; L.n2 = n2;
+  L.S.resize(n1 * n2, 3); L.P.resize(n1 * n2, 3);
+  for (int i = 0; i < n1; ++i)
+    for (int j = 0; j < n2; ++j) {
+      const double t1 = -kPi + 2 * kPi * i / (n1 - 1), t2 = -kPi / 2 + kPi * j / (n2 - 1);
+      L.S.row(i * n2 + j) = c_sphere + r * direction(t1, t2);
+      L.P.row(i * n2 + j) = c_plane + Vector3d(w * t1 / (2 * kPi), 0.0, w * t2 / (2 * kPi));
+    }
+  L.F.resize(2 * (n1 - 1) * (n2 - 1), 3);
+  int k = 0;
+  for (int i = 0; i + 1 < n1; ++i)
+    for (int j = 0; j + 1 < n2; ++j) {
+      const int a = i * n2 + j, b = (i + 1) * n2 + j, c = (i + 1) * n2 + j + 1, d = i * n2 + j + 1;
+      L.F.row(k++) << a, b, c; L.F.row(k++) << a, c, d;
+    }
+  return L;
+}
+
+}  // namespace
+
+int main(int argc, char** argv) {
+  std::string mesh_arg, orient_csv, slicer_csv, shots, backend, poses_csv;
+  double size_mm = 60, overhang = 45;
+  for (int i = 1; i < argc; ++i) {
+    std::string a = argv[i];
+    auto next = [&]() { return std::string(argv[++i]); };
+    if (a == "--size-mm") size_mm = std::stod(next());
+    else if (a == "--overhang-deg") overhang = std::stod(next());
+    else if (a == "--orientations") orient_csv = next();
+    else if (a == "--poses") poses_csv = next();
+    else if (a == "--prusaslicer") slicer_csv = next();
+    else if (a == "--screenshots") shots = next();
+    else if (a == "--backend") backend = next();
+    else mesh_arg = a;
+  }
+  if (mesh_arg.empty()) {
+    std::cerr << "usage: viewer MESH[@rx90,...] [--size-mm S] [--overhang-deg A] "
+                 "[--poses all_poses.csv | --orientations CSV] [--prusaslicer CSV] [--screenshots DIR]\n";
+    return 1;
+  }
+  const auto at = mesh_arg.find('@');
+  Mesh M = at == std::string::npos ? load_mesh(mesh_arg)
+                                   : load_mesh(mesh_arg.substr(0, at), false, mesh_arg.substr(at + 1));
+  const double maxdim = (M.V.colwise().maxCoeff() - M.V.colwise().minCoeff()).maxCoeff();
+  const double scale = size_mm / maxdim;
+
+  AlexanderParams ap; ap.overhang_deg = overhang; ap.length_scale = scale / 10.0;
+  std::vector<std::unique_ptr<Objective>> objs;
+  for (const char* n : {"castro-code", "castro-eq", "alexander"}) objs.push_back(make_objective(n, M, ap));
+  // Ezair's V(S) at 256^2 pixels for the landscape only (the benchmark uses 1024^2)
+  objs.push_back(std::make_unique<EzairSupportVolume>(M, 256));
+
+  std::vector<Pose> poses{{"initial", 0, 0}};
+  if (!poses_csv.empty()) {  // mesh,pose,t1,t2 (e.g. results/all_poses.csv: every method)
+    std::ifstream in(poses_csv); std::string line; std::getline(in, line);
+    while (std::getline(in, line)) {
+      const auto v = csv_split(line);
+      if (v.size() >= 4 && v[0] == M.name && v[1] != "initial")
+        poses.push_back({v[1], std::stod(v[2]), std::stod(v[3])});
+    }
+  } else if (!orient_csv.empty()) {
+    for (auto& p : read_orientations(orient_csv, M.name)) poses.push_back(p);
+  } else {
+    std::cerr << "no --poses/--orientations given: optimizing on S^2 (Fibonacci 20000 + local)...\n";
+    for (size_t k = 0; k < 3; ++k) {
+      auto& o = objs[k];
+      const Result r = sphere_search(*o, 20000);
+      poses.push_back({o->name(), r.t1, r.t2});
+    }
+  }
+  const auto slicer = slicer_csv.empty() ? std::map<std::string, SlicerRow>{}
+                                         : read_slicer(slicer_csv, M.name);
+
+  polyscope::options::programName = "overhang-bench — " + M.name;
+  polyscope::options::groundPlaneMode = polyscope::GroundPlaneMode::ShadowOnly;
+  polyscope::view::setUpDir(polyscope::UpDir::ZUp);
+  polyscope::view::setFrontDir(polyscope::FrontDir::NegYFront);
+  polyscope::init(backend);  // "" = auto; "openGL3_egl" for headless GPUs
+
+  // --- landscapes (one per objective, only the selected one is shown)
+  const Landscape L = make_landscape(181, 91, Vector3d(-1.5 * size_mm, 0, 0.45 * size_mm),
+                                     0.35 * size_mm, Vector3d(0, 1.6 * size_mm, 0.45 * size_mm),
+                                     1.4 * size_mm);
+  std::vector<VectorXd> land(objs.size());
+  auto compute_landscape = [&](size_t k) {  // on demand: Ezair's takes a few seconds
+    if (land[k].size()) return;
+    land[k].resize(L.S.rows());
+#pragma omp parallel for
+    for (int i = 0; i < L.n1; ++i)
+      for (int j = 0; j < L.n2; ++j)
+        land[k](i * L.n2 + j) = objs[k]->eval_angles(-kPi + 2 * kPi * i / (L.n1 - 1),
+                                                     -kPi / 2 + kPi * j / (L.n2 - 1));
+  };
+  auto* sph = polyscope::registerSurfaceMesh("f on S^2", L.S, L.F);
+  auto* pln = polyscope::registerSurfaceMesh("f on (t1,t2)", L.P, L.F);
+  sph->setEdgeWidth(0); pln->setEdgeWidth(0);
+  // optima markers
+  MatrixXd mk_s(poses.size(), 3), mk_p(poses.size(), 3);
+  for (size_t k = 0; k < poses.size(); ++k) {
+    mk_s.row(k) = Vector3d(-1.5 * size_mm, 0, 0.45 * size_mm) +
+                  0.37 * size_mm * direction(poses[k].t1, poses[k].t2);
+    mk_p.row(k) = Vector3d(0, 1.6 * size_mm, 0.45 * size_mm) +
+                  Vector3d(1.4 * size_mm * poses[k].t1 / (2 * kPi), -0.5, 1.4 * size_mm * poses[k].t2 / (2 * kPi));
+  }
+  auto* pts_s = polyscope::registerPointCloud("optima (S^2)", mk_s);
+  auto* pts_p = polyscope::registerPointCloud("optima (t1,t2)", mk_p);
+  pts_s->setPointRadius(0.012); pts_p->setPointRadius(0.012);
+
+  int cur_obj = 0, cur_pose = 1 % int(poses.size());
+  auto show_landscape = [&]() {
+    compute_landscape(cur_obj);
+    sph->addVertexScalarQuantity("f", land[cur_obj])->setColorMap("viridis")->setEnabled(true);
+    pln->addVertexScalarQuantity("f", land[cur_obj])->setColorMap("viridis")->setEnabled(true);
+  };
+  show_landscape();
+
+  // --- part on the plate
+  PrintEstimate est;
+  PrintParams pp; pp.overhang_deg = overhang;
+  polyscope::SlicePlane* plane = polyscope::addSceneSlicePlane();
+  plane->setActive(false);
+  float layer = 1.0f;  // fraction of the height
+  bool slicing = false;
+
+  auto show_pose = [&]() {
+    const Pose& P = poses[cur_pose];
+    const MatrixXd W = place_on_plate(M, P.t1, P.t2, scale);
+    std::vector<Eigen::RowVector3d> cols;
+    est = estimate_print(W, M.F, pp, &cols);
+    auto* pm = polyscope::registerSurfaceMesh("part", W, M.F);
+    VectorXd flag(M.F.rows());
+    const double thr = -std::sin(overhang * kPi / 180.0);
+    for (int f = 0; f < M.F.rows(); ++f) {
+      const Vector3d a = W.row(M.F(f, 0)), b = W.row(M.F(f, 1)), c = W.row(M.F(f, 2));
+      const Vector3d n = (b - a).cross(c - a).normalized();
+      flag(f) = n.z() < thr ? 1.0 : 0.0;
+    }
+    pm->addFaceScalarQuantity("needs support", flag)->setColorMap("reds")->setEnabled(true);
+    MatrixXd N(cols.size(), 3); MatrixXi E(cols.size() / 2, 2);
+    for (size_t k = 0; k < cols.size(); ++k) N.row(k) = cols[k];
+    for (size_t k = 0; k < cols.size() / 2; ++k) E.row(k) << int(2 * k), int(2 * k + 1);
+    if (polyscope::hasCurveNetwork("support columns")) polyscope::removeCurveNetwork("support columns");
+    if (E.rows() > 0) {
+      auto* cn = polyscope::registerCurveNetwork("support columns", N, E);
+      cn->setRadius(0.0015); cn->setColor({0.35f, 0.75f, 0.45f});
+    }
+  };
+  show_pose();
+
+  auto apply_slice = [&]() {
+    plane->setActive(slicing);
+    if (slicing)
+      plane->setPose(glm::vec3(0, 0, float(layer * est.height_mm)), glm::vec3(0, 0, -1));
+  };
+
+  polyscope::state::userCallback = [&]() {
+    ImGui::PushItemWidth(180);
+    std::vector<const char*> pnames; for (auto& p : poses) pnames.push_back(p.name.c_str());
+    if (ImGui::Combo("pose", &cur_pose, pnames.data(), int(pnames.size()))) { show_pose(); apply_slice(); }
+    const char* onames[] = {"castro-code", "castro-eq", "alexander", "ezair (256^2)"};
+    if (ImGui::Combo("landscape", &cur_obj, onames, 4)) show_landscape();
+    float ov = float(overhang);
+    if (ImGui::SliderFloat("overhang (deg)", &ov, 20.f, 70.f)) { overhang = ov; pp.overhang_deg = ov; show_pose(); }
+    if (ImGui::Checkbox("layer view", &slicing)) apply_slice();
+    if (slicing && ImGui::SliderFloat("layer", &layer, 0.f, 1.f)) apply_slice();
+    ImGui::PopItemWidth();
+    const Pose& P = poses[cur_pose];
+    ImGui::Separator();
+    ImGui::Text("t1 = %.4f  t2 = %.4f", P.t1, P.t2);
+    ImGui::Text("PROXY (not a slicer):");
+    ImGui::Text("  height %.1f mm  layers %d", est.height_mm, est.layers);
+    ImGui::Text("  overhang area %.0f mm2", est.overhang_area_mm2);
+    ImGui::Text("  support envelope %.0f mm3 (on part %.0f)", est.support_volume_mm3, est.support_on_part_volume_mm3);
+    ImGui::Text("  filament %.2f m  %.1f g  time %.0f min", est.filament_m, est.mass_g, est.time_min);
+    if (slicer.count(P.name)) {
+      const auto& s = slicer.at(P.name);
+      ImGui::Text("PrusaSlicer estimate:");
+      ImGui::Text("  filament %.2f m (support %.2f m)  %.1f g", s.filament_mm / 1000, s.support_mm / 1000, s.filament_g);
+      ImGui::Text("  time %.0f min", s.time_min);
+    }
+  };
+
+  if (!shots.empty()) {  // headless figure export
+    for (cur_pose = 0; cur_pose < int(poses.size()); ++cur_pose) {
+      show_pose();
+      const float s = float(size_mm);
+      polyscope::view::lookAt(glm::vec3(0.6f * s, -2.9f * s, 0.9f * s), glm::vec3(-0.45f * s, 0.5f * s, 0.35f * s));
+      polyscope::screenshot(shots + "/" + M.name + "__" + poses[cur_pose].name + ".png", false);
+    }
+    return 0;
+  }
+  polyscope::show();
+  return 0;
+}
