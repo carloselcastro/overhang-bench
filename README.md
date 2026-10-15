@@ -48,6 +48,17 @@ between methods, `landscape` draws the objective on the sphere of build
 directions and on the (θ₁, θ₂) rectangle, `overhang (deg)` recolours the
 faces that need support, and `layer view` slices the part.
 
+**Compare the poses side by side.** The checkbox `side by side (all poses)`
+(or `--compare` on the command line) puts the pose of every method on the
+plate, left to right in the order of the `pose` combo, with a table of the
+PrusaSlicer estimates of all of them. For a labelled image of every mesh and
+method (one row per mesh, support filament and printing time under each part):
+
+```bash
+python scripts/compare_poses.py --out compare            # compare/all_meshes.png, compare/<mesh>.png
+python scripts/compare_poses.py --meshes cow,skull --poses initial,castro-eq,alexander,ezair
+```
+
 **Optimize from the command line.**
 
 ```bash
@@ -81,6 +92,7 @@ that the right C++ runtime DLLs are found.
 | `scripts/latex_table.py` | LaTeX (booktabs) table of the slicer estimates per mesh and method |
 | `scripts/plot_angle_sweep.py` | figure: median change in support and time vs. overhang angle, per method |
 | `scripts/make_figures.py` | Figures 6–10 of the paper: Knight landscape, local minima (sliced), multistart starts and minima, renders via `viewer --figure` |
+| `scripts/compare_poses.py` | side-by-side renders of the pose of every method, per mesh, with the PrusaSlicer estimates |
 | `scripts/find_prerotation.py` | finds the pre-rotation that reproduces the dissertation's frame for a mesh |
 
 ## Build
