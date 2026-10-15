@@ -42,7 +42,7 @@ LABELS = {"initial": "usual", "castro-eq": "ours", "alexander": "Alexander", "ez
 def mesh_file(name):
     for p in sorted((ROOT / "meshes").glob(name + ".*")):
         return p
-    sys.exit(f"no mesh file for {name} in meshes/")
+    return None
 
 
 def main():
@@ -66,6 +66,10 @@ def main():
 
     grid = []
     for m in meshes:
+        mf = mesh_file(m)
+        if mf is None:  # heart and skull are downloaded by hand (README, Meshes and frames)
+            print(f"skipping {m}: no file meshes/{m}.*", file=sys.stderr)
+            continue
         poses = {r["pose"]: r for r in rows if r["mesh"] == m}
         names = [p for p in want if p in poses or p == "initial"]
         pc = tmp / f"{m}_poses.csv"
@@ -74,10 +78,9 @@ def main():
             for p in names:
                 if p != "initial":
                     w.writerow([m, p, poses[p]["t1"], poses[p]["t2"]])
-        f = mesh_file(m)
-        render(viewer, f, pc, OTHER_RGB, tmp / "grey")
+        render(viewer, mf, pc, OTHER_RGB, tmp / "grey")
         if "castro-eq" in names:
-            render(viewer, f, pc, OURS_RGB, tmp / "ours")
+            render(viewer, mf, pc, OURS_RGB, tmp / "ours")
         paths = [tmp / ("ours" if p == "castro-eq" else "grey") / f"{m}__{p}.png" for p in names]
         ims = crop_group(paths)
         caps = []
@@ -87,6 +90,8 @@ def main():
                         if s else "")
         grid.append((m, names, ims, caps))
         save([grid[-1]], out / f"{m}.png")
+    if not grid:
+        sys.exit("no mesh to render: run scripts/fetch_meshes.py first")
     save(grid, out / "all_meshes.png")
     print("wrote", out)
 

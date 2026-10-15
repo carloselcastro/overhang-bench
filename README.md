@@ -48,16 +48,37 @@ between methods, `landscape` draws the objective on the sphere of build
 directions and on the (θ₁, θ₂) rectangle, `overhang (deg)` recolours the
 faces that need support, and `layer view` slices the part.
 
-**Compare the poses side by side.** The checkbox `side by side (all poses)`
-(or `--compare` on the command line) puts the pose of every method on the
-plate, left to right in the order of the `pose` combo, with a table of the
-PrusaSlicer estimates of all of them. For a labelled image of every mesh and
-method (one row per mesh, support filament and printing time under each part):
+**Compare the poses side by side.** After the quick start, this opens the cow
+with the pose of every method on the plate, left to right, and a table of
+their PrusaSlicer estimates (support filament, total filament, time):
 
 ```bash
-python scripts/compare_poses.py --out compare            # compare/all_meshes.png, compare/<mesh>.png
-python scripts/compare_poses.py --meshes cow,skull --poses initial,castro-eq,alexander,ezair
+./build/viewer meshes/cow.off --poses results/all_poses.csv --prusaslicer results/prusaslicer.csv --compare
 ```
+```powershell
+.\build\viewer.exe meshes\cow.off --poses results\all_poses.csv --prusaslicer results\prusaslicer.csv --compare
+```
+
+The same view is the checkbox `side by side (all poses)` in the panel; the
+order is that of the `pose` combo. Pose names: `initial` is the usual
+orientation (the file as distributed, only placed on the plate), `castro-eq`
+the proposed method (Eq. 5), `alexander`, `ezair`, `goguelin-len`,
+`goguelin-vol` and `support-volume` the objective-based baselines,
+`tweaker3-sur`/`tweaker3-vol` the Tweaker-3 tool (`castro-code` is the variant
+of the dissertation's code, see
+[Known differences](#known-differences-between-the-dissertations-text-and-code)).
+
+For a labelled image instead (one row per mesh, one column per method, the
+proposed method in teal, PrusaSlicer's support filament and time under each
+part, all parts of a row at the same scale):
+
+```bash
+python3 scripts/compare_poses.py --out compare       # compare/all_meshes.png and compare/<mesh>.png
+python3 scripts/compare_poses.py --out compare --meshes cow,bunny --poses initial,castro-eq,alexander,ezair
+```
+
+Meshes missing from `meshes/` (heart and skull, until downloaded by hand) are
+skipped.
 
 **Optimize from the command line.**
 
@@ -284,6 +305,7 @@ To put a new surface in the benchmark tables, add a line to
 | `landscape` | objective drawn on S² and on the (θ₁, θ₂) rectangle; dots = poses (Ezair's at 256², computed on demand) |
 | `overhang (deg)` | recolors overhang faces and recomputes the support columns |
 | `layer view` + `layer` | slice plane at the chosen fraction of the height |
+| `side by side (all poses)` | every pose on the plate, left to right, with a table of the estimates of all poses (also `--compare`) |
 | side panel | proxy estimates (and PrusaSlicer's, if `--prusaslicer` was given) |
 
 ## Adding a method
