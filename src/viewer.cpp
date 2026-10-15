@@ -31,6 +31,8 @@
 #include "polyscope/view.h"
 #include "imgui.h"
 
+#include <ctime>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -332,6 +334,36 @@ int main(int argc, char** argv) {
     if (ImGui::Checkbox("layer view", &slicing)) apply_slice();
     if (slicing && ImGui::SliderFloat("layer", &layer, 0.f, 1.f)) apply_slice();
     ImGui::PopItemWidth();
+    // polyscope's own screenshot restarts at screenshot_000000 in every session
+    // (overwriting older files) and is transparent; this one never overwrites
+    static std::string saved;
+    if (ImGui::Button("save image")) {
+      std::filesystem::create_directories("screenshots");
+      char ts[32]; const std::time_t now = std::time(nullptr);
+      std::strftime(ts, sizeof ts, "%Y%m%d-%H%M%S", std::localtime(&now));
+      std::string base = "screenshots/" + M.name + "__" + (side_by_side ? "compare" : poses[cur_pose].name) + "__" + ts;
+      std::string path = base + ".png";
+      for (int n = 2; std::filesystem::exists(path); ++n) path = base + "-" + std::to_string(n) + ".png";
+      polyscope::screenshot(path, false);
+      saved = std::filesystem::absolute(path).string();
+      if (side_by_side) {  // the image has no labels: write the order next to it
+        std::ofstream t(path.substr(0, path.size() - 4) + ".txt");
+        t << "poses left to right (" << M.name << ")";
+        if (!slicer.empty()) t << "; PrusaSlicer support filament m / total m / time min";
+        t << '\n';
+        for (size_t k = 0; k < poses.size(); ++k) {
+          t << k << ' ' << poses[k].name;
+          if (slicer.count(poses[k].name)) {
+            const auto& r = slicer.at(poses[k].name);
+            char b[64];
+            std::snprintf(b, sizeof b, "  %.2f / %.2f / %.0f", r.support_mm / 1000, r.filament_mm / 1000, r.time_min);
+            t << b;
+          }
+          t << '\n';
+        }
+      }
+    }
+    if (!saved.empty()) { ImGui::SameLine(); ImGui::TextWrapped("saved %s", saved.c_str()); }
     const Pose& P = poses[cur_pose];
     ImGui::Separator();
     ImGui::Text("t1 = %.4f  t2 = %.4f", P.t1, P.t2);
@@ -347,6 +379,20 @@ int main(int argc, char** argv) {
       ImGui::Text("  time %.0f min", s.time_min);
     }
     if (side_by_side) {  // all poses, left to right on the plate
+      // name of each pose above its part, projected to the screen every frame
+      const glm::mat4 VP = polyscope::view::getCameraPerspectiveMatrix() * polyscope::view::getCameraViewMatrix();
+      const ImVec2 ds = ImGui::GetIO().DisplaySize;
+      ImDrawList* dl = ImGui::GetBackgroundDrawList();
+      for (size_t k = 0; k < poses.size(); ++k) {
+        const float top = float(placed[k].col(2).maxCoeff() + 0.08 * size_mm);
+        const glm::vec4 c = VP * glm::vec4(float(spacing * double(k)), 0.f, top, 1.f);
+        if (c.w <= 0) continue;  // behind the camera
+        const std::string t = cmp_name(k);
+        const ImVec2 sz = ImGui::CalcTextSize(t.c_str());
+        const ImVec2 q((c.x / c.w * 0.5f + 0.5f) * ds.x - sz.x / 2, (0.5f - c.y / c.w * 0.5f) * ds.y - sz.y / 2);
+        dl->AddRectFilled(ImVec2(q.x - 4, q.y - 2), ImVec2(q.x + sz.x + 4, q.y + sz.y + 2), IM_COL32(255, 255, 255, 210), 3.f);
+        dl->AddText(q, IM_COL32(20, 20, 20, 255), t.c_str());
+      }
       ImGui::Separator();
       const bool sl = !slicer.empty();
       ImGui::Text(sl ? "All poses, left to right (PrusaSlicer):" : "All poses, left to right (proxy):");

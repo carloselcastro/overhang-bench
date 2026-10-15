@@ -35,4 +35,5 @@ imgui.ini
 .polyscope.ini
 screenshot_*.png
 screenshot_*.jpg
+screenshots/
 compare/

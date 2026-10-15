@@ -62,7 +62,8 @@ estimates (support filament, total filament, time):
 ```
 
 The same view is the checkbox `side by side (all poses)` in the panel; the
-order is that of the `pose` combo. Pose names: `initial` is the usual
+order is that of the `pose` combo, and each part is labelled with its number and
+name in the 3D view (the numbers of the table). Pose names: `initial` is the usual
 orientation (the file as distributed, only placed on the plate), `castro-eq`
 the proposed method (Eq. 5), `ezair`, `goguelin-len` and `alexander` the
 methods of Ezair et al. (2015), Goguelin et al. (2021) and Alexander et al.
@@ -291,6 +292,7 @@ To put a new surface in the benchmark tables, add a line to
 | `layer view` + `layer` | slice plane at the chosen fraction of the height |
 | `side by side (all poses)` | every pose on the plate, left to right, with overhang faces, proxy support columns and a table of the estimates of all poses (also `--compare`) |
 | side panel | proxy estimates (and PrusaSlicer's, if `--prusaslicer` was given) |
+| `save image` | saves the view (white background, no panels) to `screenshots/<mesh>__<pose or compare>__<date-time>.png` in the folder the viewer was started from, never overwriting; in side-by-side mode also a `.txt` with the poses left to right and their PrusaSlicer estimates. Polyscope's own `Screenshot` button writes `screenshot_000000.png`, … in the same folder and restarts the numbering in every session, overwriting older files |
 
 ## Adding a method
 
