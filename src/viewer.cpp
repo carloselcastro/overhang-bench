@@ -1,4 +1,4 @@
-// overhang-bench — interactive viewer (Polyscope).
+// overhang-bench â€” interactive viewer (Polyscope).
 //
 //   viewer MESH[@prerotation] [--size-mm 60] [--overhang-deg 45]
 //          [--poses results/all_poses.csv]        (every method, incl. external)
@@ -174,7 +174,7 @@ int main(int argc, char** argv) {
   const auto slicer = slicer_csv.empty() ? std::map<std::string, SlicerRow>{}
                                          : read_slicer(slicer_csv, M.name);
 
-  polyscope::options::programName = "overhang-bench — " + M.name;
+  polyscope::options::programName = "overhang-bench â€” " + M.name;
   polyscope::options::groundPlaneMode = polyscope::GroundPlaneMode::ShadowOnly;
   polyscope::view::setUpDir(polyscope::UpDir::ZUp);
   polyscope::view::setFrontDir(polyscope::FrontDir::NegYFront);
@@ -267,12 +267,16 @@ int main(int argc, char** argv) {
   }
   spacing *= 1.25;
   auto cmp_name = [&](size_t k) { return std::to_string(k) + " " + poses[k].name; };
+  auto cmp_sup = [&](size_t k) { return cmp_name(k) + " (support columns)"; };
   auto show_compare = [&](bool on) {
     for (size_t k = 0; k < poses.size(); ++k) {
+      if (polyscope::hasCurveNetwork(cmp_sup(k))) polyscope::removeCurveNetwork(cmp_sup(k));
       if (!on) {
         if (polyscope::hasSurfaceMesh(cmp_name(k))) polyscope::removeSurfaceMesh(cmp_name(k));
         continue;
       }
+      std::vector<Eigen::RowVector3d> cols;  // proxy support columns, as in show_pose
+      all_est[k] = estimate_print(placed[k], M.F, pp, &cols);
       MatrixXd W = placed[k];
       W.col(0).array() += spacing * double(k);
       auto* pm = polyscope::registerSurfaceMesh(cmp_name(k), W, M.F);
@@ -284,6 +288,12 @@ int main(int argc, char** argv) {
         flag(f) = (b - a).cross(c - a).normalized().z() < thr ? 1.0 : 0.0;
       }
       pm->addFaceScalarQuantity("needs support", flag)->setColorMap("reds")->setEnabled(true);
+      if (cols.empty()) continue;
+      MatrixXd N(cols.size(), 3); MatrixXi E(cols.size() / 2, 2);
+      for (size_t i = 0; i < cols.size(); ++i) N.row(i) = cols[i] + Eigen::RowVector3d(spacing * double(k), 0, 0);
+      for (size_t i = 0; i < cols.size() / 2; ++i) E.row(i) << int(2 * i), int(2 * i + 1);
+      auto* cn = polyscope::registerCurveNetwork(cmp_sup(k), N, E);
+      cn->setRadius(0.003 * size_mm, false); cn->setColor({0.35f, 0.75f, 0.45f});
     }
     if (polyscope::hasSurfaceMesh("part")) polyscope::getSurfaceMesh("part")->setEnabled(!on);
     if (polyscope::hasCurveNetwork("support columns"))
@@ -293,7 +303,6 @@ int main(int argc, char** argv) {
     for (const char* n : {"optima (S^2)", "optima (t1,t2)"})
       if (polyscope::hasPointCloud(n)) polyscope::getPointCloud(n)->setEnabled(!on);
     if (on) {
-      for (size_t k = 0; k < poses.size(); ++k) all_est[k] = estimate_print(placed[k], M.F, pp);
       const float s = float(size_mm), mid = float(spacing * (poses.size() - 1) / 2);
       polyscope::view::lookAt(glm::vec3(mid, -std::max(2.4f * s, 1.7f * mid), 0.5f * s + 0.3f * mid),
                               glm::vec3(mid, 0.f, 0.35f * s));

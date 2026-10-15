@@ -49,8 +49,10 @@ directions and on the (θ₁, θ₂) rectangle, `overhang (deg)` recolours the
 faces that need support, and `layer view` slices the part.
 
 **Compare the poses side by side.** After the quick start, this opens the cow
-with the pose of every method on the plate, left to right, and a table of
-their PrusaSlicer estimates (support filament, total filament, time):
+with the pose of every method on the plate, left to right, the faces that
+need support in red and the support columns of the proxy model in green (an
+approximation, not the slicer's supports), and a table of their PrusaSlicer
+estimates (support filament, total filament, time):
 
 ```bash
 ./build/viewer meshes/cow.off --poses results/all_poses.csv --prusaslicer results/prusaslicer.csv --compare
@@ -287,7 +289,7 @@ To put a new surface in the benchmark tables, add a line to
 | `landscape` | objective drawn on S² and on the (θ₁, θ₂) rectangle; dots = poses (Ezair's at 256², computed on demand) |
 | `overhang (deg)` | recolors overhang faces and recomputes the support columns |
 | `layer view` + `layer` | slice plane at the chosen fraction of the height |
-| `side by side (all poses)` | every pose on the plate, left to right, with a table of the estimates of all poses (also `--compare`) |
+| `side by side (all poses)` | every pose on the plate, left to right, with overhang faces, proxy support columns and a table of the estimates of all poses (also `--compare`) |
 | side panel | proxy estimates (and PrusaSlicer's, if `--prusaslicer` was given) |
 
 ## Adding a method
