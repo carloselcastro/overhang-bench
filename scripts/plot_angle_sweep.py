@@ -73,8 +73,8 @@ def main():
                          "axes.labelcolor": INK, "xtick.color": INK2, "ytick.color": INK2,
                          "pdf.fonttype": 42})
     fig, axs = plt.subplots(1, 2, figsize=(10, 4.2), sharex=True)
-    for ax, k, lab in ((axs[0], 0, "Support filament: median change (%)"),
-                       (axs[1], 1, "Print time: median change (%)")):
+    n = max(v[2] for v in med.values())
+    for ax, k, title in ((axs[0], 0, "Support filament"), (axs[1], 1, "Printing time")):
         ax.axhline(0, color=INK2, lw=1)
         for m in methods:
             name, col, mk, ls = STYLE.get(m, (m, "#52514e", "o", "-"))
@@ -85,7 +85,8 @@ def main():
             ax.plot(angles, ys, color=col, marker=mk, ms=9 if top else 7, lw=2.5 if top else 2,
                     ls=ls, label=name, markeredgecolor="white", markeredgewidth=1,
                     zorder=3 if top else 4, alpha=1.0)
-        ax.set_ylabel(lab)
+        ax.set_title(f"{title} (median over {n} meshes)", fontsize=13, color=INK)
+        ax.set_ylabel("Change vs. usual orientation (%)")
         ax.set_xlabel("Overhang angle from the vertical (deg)")
         ax.set_xticks(angles)
         ax.grid(axis="y", color=GRID, lw=0.8)
@@ -93,7 +94,7 @@ def main():
     h, l = axs[0].get_legend_handles_labels()
     fig.legend(h, l, loc="upper center", ncol=min(5, len(methods)), frameon=False,
                bbox_to_anchor=(0.5, 1.02), handlelength=3)
-    fig.tight_layout(rect=(0, 0, 1, 0.9))
+    fig.tight_layout(rect=(0, 0, 1, 0.88))
     for ext in ("pdf", "png"):
         fig.savefig(f"{a.out}.{ext}", dpi=200, bbox_inches="tight")
     print(f"wrote {a.out}.pdf/.png  (size {size:g} mm, PrusaSlicer estimates relative to the initial pose)")

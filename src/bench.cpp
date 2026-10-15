@@ -35,16 +35,17 @@ static std::vector<std::string> split(const std::string& s, char c = ',') {
 static void usage() {
   std::cerr << "usage: bench [--out DIR] [--size-mm S] [--grid-deg G] [--sphere-n N]\n"
                "             [--objectives a,b,..] [--searches a,b,..] [--overhang-deg A]\n"
-               "             [--cell-mm C] [--landscape] [--no-stl] [--y-up]\n"
+               "             [--cell-mm C] [--landscape] [--local-minima] [--no-stl] [--y-up]\n"
                "             [--poses CSV(mesh,pose,t1,t2)] MESH[@rx90,...]...\n"
-               "  --searches none --poses CSV  evaluates external poses only (appends)\n";
+               "  --searches none --poses CSV  evaluates external poses only (appends)\n"
+               "  --local-minima  also write every local run of the multistarts to local_minima.csv\n";
 }
 
 int main(int argc, char** argv) {
   std::string out = "results";
   double size_mm = 60.0, grid_deg = 1.0, overhang = 45.0, cell = 0.5;
   int sphere_n = 20000;
-  bool landscape = false, write_stl = true, y_up = false;
+  bool landscape = false, write_stl = true, y_up = false, local_minima = false;
   std::vector<std::string> objectives{"castro-eq", "castro-code", "alexander"};
   std::vector<std::string> searches{"grid", "mcd-asrun", "mcd", "rcsp", "sphere"};
   std::vector<std::string> meshes;
@@ -61,6 +62,7 @@ int main(int argc, char** argv) {
     else if (a == "--objectives") objectives = split(next());
     else if (a == "--searches") { searches = split(next()); if (searches == std::vector<std::string>{"none"}) searches.clear(); }
     else if (a == "--landscape") landscape = true;
+    else if (a == "--local-minima") local_minima = true;
     else if (a == "--no-stl") write_stl = false;
     else if (a == "--y-up") y_up = true;
     else if (a == "--poses") poses_csv = next();
@@ -88,6 +90,9 @@ int main(int argc, char** argv) {
       "mesh,pose,t1,t2,height_mm,part_volume_mm3,overhang_area_mm2,support_volume_mm3,"
       "support_on_part_volume_mm3,support_contact_mm2,filament_m,mass_g,time_min");
   auto fe_ptr = open_csv("poses_eval.csv", "mesh,pose,objective,t1,t2,fval");
+  std::unique_ptr<std::ofstream> fl_ptr;
+  if (local_minima)
+    fl_ptr = open_csv("local_minima.csv", "mesh,objective,search,start_t1,start_t2,t1,t2,fval");
   std::ofstream& fp = *fp_ptr;
   std::ofstream& fe = *fe_ptr;
 
@@ -122,13 +127,17 @@ int main(int argc, char** argv) {
                                         : make_objective(on, M, ap);
       for (const auto& sn : searches) {
         Result r;
+        std::vector<LocalRun> runs, *rp = local_minima ? &runs : nullptr;
         if (sn == "grid") r = grid_search(*obj, grid_deg * kPi / 180.0);
-        else if (sn == "mcd-asrun") r = multistart(*obj, starts_mcd(true), sn);
-        else if (sn == "mcd") r = multistart(*obj, starts_mcd(false), sn);
-        else if (sn == "rcsp") r = multistart(*obj, starts_rcsp(), sn);
+        else if (sn == "mcd-asrun") r = multistart(*obj, starts_mcd(true), sn, rp);
+        else if (sn == "mcd") r = multistart(*obj, starts_mcd(false), sn, rp);
+        else if (sn == "rcsp") r = multistart(*obj, starts_rcsp(), sn, rp);
         else if (sn == "sphere") r = sphere_search(*obj, sphere_n);
         else if (sn == "ezair") r = ezair_search(*obj);
         else throw std::runtime_error("unknown search: " + sn);
+        for (const auto& lr : runs)
+          *fl_ptr << M.name << ',' << on << ',' << sn << ',' << lr.x0(0) << ',' << lr.x0(1) << ','
+                  << lr.x(0) << ',' << lr.x(1) << ',' << lr.fval << '\n';
         const Vector3d d = r.d();
         std::ofstream& fo = *fo_ptr;
         fo << M.name << ',' << M.F.rows() << ',' << (M.boundary_edges == 0) << ',' << on << ','

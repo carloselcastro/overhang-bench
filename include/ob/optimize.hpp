@@ -136,13 +136,17 @@ inline std::pair<Eigen::Vector2d, double> local_solve(const Objective& obj, cons
   return obj.smooth() ? local_lbfgsb(f, x0) : local_nelder_mead(f, x0);
 }
 
+// One local run of a multistart search: its starting point and where it ended.
+struct LocalRun { Eigen::Vector2d x0, x; double fval; };
+
 inline Result multistart(const Objective& obj, const std::vector<Eigen::Vector2d>& starts,
-                         const std::string& label) {
+                         const std::string& label, std::vector<LocalRun>* runs = nullptr) {
   auto t0 = std::chrono::steady_clock::now();
   Counted f(obj);
   Result r; r.objective = obj.name(); r.search = label; r.fval = 1e300;
   for (const auto& x0 : starts) {
     auto [x, fx] = local_solve(obj, f, x0);
+    if (runs) runs->push_back({x0, x, fx});
     if (fx < r.fval) { r.fval = fx; r.t1 = x(0); r.t2 = x(1); }
   }
   r.evals = f.count();

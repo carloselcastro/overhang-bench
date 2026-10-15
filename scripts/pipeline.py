@@ -77,10 +77,18 @@ def write_poses(path, rows):
         w.writerows(rows)
 
 
+# The pose of the proposed method is the best minimizer of its two multistart
+# strategies (M.C.D. with cell centres, R.C.S.P.), as described in the paper;
+# grid, mcd-asrun and sphere are run only for comparison.
+POSE_SEARCHES = {"castro-code": {"mcd", "rcsp"}, "castro-eq": {"mcd", "rcsp"}}
+
+
 def best_poses(orient_csv, objectives=None):
     best = {}
     for r in csv.DictReader(open(orient_csv, encoding="utf-8")):
         if objectives and r["objective"] not in objectives:
+            continue
+        if r["search"] not in POSE_SEARCHES.get(r["objective"], {r["search"]}):
             continue
         k = (r["mesh"], r["objective"])
         if k not in best or float(r["fval"]) < float(best[k]["fval"]):

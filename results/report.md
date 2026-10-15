@@ -106,176 +106,176 @@ f relative to the best value found by any strategy for that (mesh, objective); 0
 | mesh | objective | search | f − f* (%) | evaluations | time (s) |
 |---|---|---|---|---|---|
 | arm | castro-code | grid | 1.44 | 65341 | 0.44 |
-| arm | castro-code | mcd-asrun | 0.01 | 13947 | 0.28 |
-| arm | castro-code | mcd | 0.06 | 8732 | 0.17 |
-| arm | castro-code | rcsp | 0.00 | 9053 | 0.19 |
-| arm | castro-code | sphere | 0.37 | 22293 | 0.15 |
-| arm | castro-eq | grid | 1.31 | 65341 | 0.41 |
-| arm | castro-eq | mcd-asrun | 0.00 | 16465 | 0.33 |
-| arm | castro-eq | mcd | 0.00 | 12704 | 0.26 |
-| arm | castro-eq | rcsp | 1.05 | 10022 | 0.21 |
-| arm | castro-eq | sphere | 0.41 | 21810 | 0.16 |
-| arm | alexander | grid | 0.61 | 65341 | 32.99 |
-| arm | alexander | mcd-asrun | 0.42 | 4892 | 7.12 |
-| arm | alexander | mcd | 0.03 | 4808 | 3.82 |
-| arm | alexander | rcsp | 0.03 | 4616 | 3.30 |
-| arm | alexander | sphere | 0.00 | 21131 | 3.28 |
-| bunny | castro-code | grid | 0.19 | 65341 | 0.28 |
+| arm | castro-code | mcd-asrun | 0.01 | 13947 | 0.31 |
+| arm | castro-code | mcd | 0.06 | 8732 | 0.19 |
+| arm | castro-code | rcsp | 0.00 | 9053 | 0.18 |
+| arm | castro-code | sphere | 0.37 | 22293 | 0.16 |
+| arm | castro-eq | grid | 1.31 | 65341 | 0.47 |
+| arm | castro-eq | mcd-asrun | 0.00 | 16465 | 0.37 |
+| arm | castro-eq | mcd | 0.00 | 12704 | 0.29 |
+| arm | castro-eq | rcsp | 1.05 | 10022 | 0.22 |
+| arm | castro-eq | sphere | 0.41 | 21810 | 0.18 |
+| arm | alexander | grid | 0.61 | 65341 | 9.80 |
+| arm | alexander | mcd-asrun | 0.42 | 4892 | 4.64 |
+| arm | alexander | mcd | 0.03 | 4808 | 3.81 |
+| arm | alexander | rcsp | 0.03 | 4616 | 3.32 |
+| arm | alexander | sphere | 0.00 | 21131 | 3.32 |
+| bunny | castro-code | grid | 0.19 | 65341 | 0.34 |
 | bunny | castro-code | mcd-asrun | 0.00 | 8066 | 0.07 |
-| bunny | castro-code | mcd | 0.00 | 7862 | 0.07 |
+| bunny | castro-code | mcd | 0.00 | 7862 | 0.06 |
 | bunny | castro-code | rcsp | 0.09 | 4558 | 0.04 |
 | bunny | castro-code | sphere | 0.01 | 22249 | 0.09 |
-| bunny | castro-eq | grid | 0.17 | 65341 | 0.40 |
-| bunny | castro-eq | mcd-asrun | 0.00 | 7918 | 0.08 |
-| bunny | castro-eq | mcd | 0.10 | 7497 | 0.07 |
+| bunny | castro-eq | grid | 0.17 | 65341 | 0.43 |
+| bunny | castro-eq | mcd-asrun | 0.00 | 7918 | 0.07 |
+| bunny | castro-eq | mcd | 0.10 | 7497 | 0.06 |
 | bunny | castro-eq | rcsp | 0.69 | 4376 | 0.04 |
-| bunny | castro-eq | sphere | 0.00 | 23415 | 0.14 |
-| bunny | alexander | grid | 0.82 | 65341 | 4.43 |
-| bunny | alexander | mcd-asrun | 0.44 | 4645 | 2.19 |
-| bunny | alexander | mcd | 0.73 | 5335 | 2.42 |
-| bunny | alexander | rcsp | 1.30 | 4477 | 2.18 |
-| bunny | alexander | sphere | 0.00 | 21295 | 1.93 |
-| camel_b | castro-code | grid | 0.08 | 65341 | 0.29 |
+| bunny | castro-eq | sphere | 0.00 | 23415 | 0.16 |
+| bunny | alexander | grid | 0.82 | 65341 | 4.54 |
+| bunny | alexander | mcd-asrun | 0.44 | 4645 | 2.06 |
+| bunny | alexander | mcd | 0.73 | 5335 | 2.31 |
+| bunny | alexander | rcsp | 1.30 | 4477 | 2.04 |
+| bunny | alexander | sphere | 0.00 | 21295 | 1.89 |
+| camel_b | castro-code | grid | 0.08 | 65341 | 0.31 |
 | camel_b | castro-code | mcd-asrun | 0.15 | 13070 | 0.06 |
 | camel_b | castro-code | mcd | 0.00 | 14272 | 0.07 |
-| camel_b | castro-code | rcsp | 0.21 | 11447 | 0.05 |
-| camel_b | castro-code | sphere | 0.09 | 23238 | 0.07 |
-| camel_b | castro-eq | grid | 0.00 | 65341 | 0.30 |
+| camel_b | castro-code | rcsp | 0.21 | 11447 | 0.06 |
+| camel_b | castro-code | sphere | 0.09 | 23238 | 0.08 |
+| camel_b | castro-eq | grid | 0.00 | 65341 | 0.32 |
 | camel_b | castro-eq | mcd-asrun | 0.37 | 13864 | 0.07 |
 | camel_b | castro-eq | mcd | 0.07 | 13256 | 0.07 |
 | camel_b | castro-eq | rcsp | 0.07 | 12259 | 0.06 |
-| camel_b | castro-eq | sphere | 0.00 | 21981 | 0.08 |
-| camel_b | alexander | grid | 1.74 | 65341 | 2.89 |
-| camel_b | alexander | mcd-asrun | 3.99 | 4344 | 1.00 |
-| camel_b | alexander | mcd | 2.94 | 4692 | 1.14 |
-| camel_b | alexander | rcsp | 3.26 | 4630 | 1.13 |
+| camel_b | castro-eq | sphere | 0.00 | 21981 | 0.07 |
+| camel_b | alexander | grid | 1.74 | 65341 | 2.94 |
+| camel_b | alexander | mcd-asrun | 3.99 | 4344 | 0.99 |
+| camel_b | alexander | mcd | 2.94 | 4692 | 1.13 |
+| camel_b | alexander | rcsp | 3.26 | 4630 | 1.14 |
 | camel_b | alexander | sphere | 0.00 | 20835 | 0.88 |
-| cow | castro-code | grid | 1.01 | 65341 | 0.31 |
+| cow | castro-code | grid | 1.01 | 65341 | 0.33 |
 | cow | castro-code | mcd-asrun | 0.00 | 14473 | 0.10 |
 | cow | castro-code | mcd | 0.00 | 12719 | 0.09 |
 | cow | castro-code | rcsp | 0.00 | 14186 | 0.10 |
 | cow | castro-code | sphere | 0.00 | 26024 | 0.12 |
-| cow | castro-eq | grid | 1.01 | 65341 | 0.42 |
+| cow | castro-eq | grid | 1.01 | 65341 | 0.45 |
 | cow | castro-eq | mcd-asrun | 0.00 | 23439 | 0.17 |
 | cow | castro-eq | mcd | 0.00 | 57691 | 0.40 |
 | cow | castro-eq | rcsp | 0.01 | 15416 | 0.11 |
 | cow | castro-eq | sphere | 0.00 | 25060 | 0.16 |
-| cow | alexander | grid | 1.74 | 65341 | 5.24 |
-| cow | alexander | mcd-asrun | 0.87 | 4811 | 4.46 |
-| cow | alexander | mcd | 0.00 | 4747 | 4.28 |
-| cow | alexander | rcsp | 0.00 | 5525 | 5.48 |
-| cow | alexander | sphere | 0.00 | 20999 | 2.33 |
-| horse_quad | castro-code | grid | 0.33 | 65341 | 0.32 |
-| horse_quad | castro-code | mcd-asrun | 0.05 | 6125 | 0.06 |
-| horse_quad | castro-code | mcd | 0.05 | 6855 | 0.07 |
-| horse_quad | castro-code | rcsp | 0.09 | 5541 | 0.05 |
-| horse_quad | castro-code | sphere | 0.00 | 21571 | 0.11 |
-| horse_quad | castro-eq | grid | 0.36 | 65341 | 0.34 |
-| horse_quad | castro-eq | mcd-asrun | 0.00 | 7180 | 0.09 |
-| horse_quad | castro-eq | mcd | 0.16 | 7198 | 0.10 |
-| horse_quad | castro-eq | rcsp | 0.09 | 4930 | 0.05 |
-| horse_quad | castro-eq | sphere | 0.03 | 21250 | 0.13 |
-| horse_quad | alexander | grid | 3.05 | 65341 | 10.21 |
-| horse_quad | alexander | mcd-asrun | 9.81 | 4501 | 3.21 |
-| horse_quad | alexander | mcd | 4.24 | 4761 | 4.06 |
-| horse_quad | alexander | rcsp | 0.00 | 4592 | 4.22 |
-| horse_quad | alexander | sphere | 0.00 | 20906 | 3.76 |
-| decimated-knight | castro-code | grid | 1.99 | 65341 | 0.07 |
-| decimated-knight | castro-code | mcd-asrun | 0.00 | 20389 | 0.05 |
-| decimated-knight | castro-code | mcd | 0.01 | 14855 | 0.04 |
-| decimated-knight | castro-code | rcsp | 0.00 | 65101 | 0.20 |
-| decimated-knight | castro-code | sphere | 0.00 | 23114 | 0.03 |
-| decimated-knight | castro-eq | grid | 0.29 | 65341 | 0.07 |
-| decimated-knight | castro-eq | mcd-asrun | 0.00 | 24267 | 0.06 |
-| decimated-knight | castro-eq | mcd | 0.00 | 32467 | 0.17 |
-| decimated-knight | castro-eq | rcsp | 0.00 | 49707 | 0.17 |
-| decimated-knight | castro-eq | sphere | 0.00 | 24004 | 0.04 |
-| decimated-knight | alexander | grid | 0.02 | 65341 | 2.52 |
-| decimated-knight | alexander | mcd-asrun | 0.00 | 4757 | 0.60 |
-| decimated-knight | alexander | mcd | 0.00 | 5044 | 0.69 |
-| decimated-knight | alexander | rcsp | 0.00 | 5184 | 0.86 |
-| decimated-knight | alexander | sphere | 0.00 | 21273 | 0.79 |
-| decimated-max | castro-code | grid | 0.00 | 65341 | 0.60 |
-| decimated-max | castro-code | mcd-asrun | 0.00 | 15550 | 0.39 |
-| decimated-max | castro-code | mcd | 0.00 | 15482 | 0.41 |
-| decimated-max | castro-code | rcsp | 0.00 | 16544 | 0.43 |
-| decimated-max | castro-code | sphere | 0.00 | 20383 | 0.19 |
-| decimated-max | castro-eq | grid | 0.01 | 65341 | 0.65 |
-| decimated-max | castro-eq | mcd-asrun | 0.00 | 17147 | 0.53 |
-| decimated-max | castro-eq | mcd | 0.00 | 18733 | 0.65 |
-| decimated-max | castro-eq | rcsp | 0.00 | 17206 | 0.58 |
-| decimated-max | castro-eq | sphere | 0.00 | 20393 | 0.22 |
-| decimated-max | alexander | grid | 0.43 | 65341 | 25.43 |
-| decimated-max | alexander | mcd-asrun | 0.00 | 4321 | 6.23 |
-| decimated-max | alexander | mcd | 0.00 | 4587 | 6.26 |
-| decimated-max | alexander | rcsp | 0.10 | 4867 | 7.08 |
-| decimated-max | alexander | sphere | 0.14 | 20921 | 8.58 |
-| heart | castro-code | grid | 0.07 | 65341 | 0.98 |
-| heart | castro-code | mcd-asrun | 0.02 | 16138 | 0.55 |
-| heart | castro-code | mcd | 0.01 | 14401 | 0.50 |
-| heart | castro-code | rcsp | 0.25 | 21445 | 0.76 |
-| heart | castro-code | sphere | 0.00 | 24811 | 0.45 |
-| heart | castro-eq | grid | 0.26 | 65341 | 1.10 |
-| heart | castro-eq | mcd-asrun | 0.00 | 15565 | 0.63 |
-| heart | castro-eq | mcd | 0.00 | 15878 | 0.78 |
-| heart | castro-eq | rcsp | 0.80 | 13281 | 0.53 |
-| heart | castro-eq | sphere | 0.00 | 24792 | 0.52 |
-| heart | alexander | grid | 0.83 | 65341 | 87.77 |
-| heart | alexander | mcd-asrun | 0.27 | 3825 | 12.25 |
-| heart | alexander | mcd | 0.27 | 4056 | 12.78 |
-| heart | alexander | rcsp | 0.30 | 3958 | 11.78 |
-| heart | alexander | sphere | 0.00 | 20819 | 9.82 |
-| skull | castro-code | grid | 0.23 | 65341 | 0.32 |
+| cow | alexander | grid | 1.74 | 65341 | 3.69 |
+| cow | alexander | mcd-asrun | 0.87 | 4811 | 1.78 |
+| cow | alexander | mcd | 0.00 | 4747 | 1.76 |
+| cow | alexander | rcsp | 0.00 | 5525 | 2.06 |
+| cow | alexander | sphere | 0.00 | 20999 | 1.35 |
+| horse_quad | castro-code | grid | 0.33 | 65341 | 0.31 |
+| horse_quad | castro-code | mcd-asrun | 0.05 | 6125 | 0.04 |
+| horse_quad | castro-code | mcd | 0.05 | 6855 | 0.04 |
+| horse_quad | castro-code | rcsp | 0.09 | 5541 | 0.03 |
+| horse_quad | castro-code | sphere | 0.00 | 21571 | 0.10 |
+| horse_quad | castro-eq | grid | 0.36 | 65341 | 0.44 |
+| horse_quad | castro-eq | mcd-asrun | 0.00 | 7180 | 0.04 |
+| horse_quad | castro-eq | mcd | 0.16 | 7198 | 0.04 |
+| horse_quad | castro-eq | rcsp | 0.09 | 4930 | 0.03 |
+| horse_quad | castro-eq | sphere | 0.03 | 21250 | 0.14 |
+| horse_quad | alexander | grid | 3.05 | 65341 | 3.09 |
+| horse_quad | alexander | mcd-asrun | 9.81 | 4501 | 1.22 |
+| horse_quad | alexander | mcd | 4.24 | 4761 | 1.50 |
+| horse_quad | alexander | rcsp | 0.00 | 4592 | 1.50 |
+| horse_quad | alexander | sphere | 0.00 | 20906 | 1.14 |
+| decimated-knight | castro-code | grid | 1.99 | 65341 | 0.01 |
+| decimated-knight | castro-code | mcd-asrun | 0.00 | 20389 | 0.03 |
+| decimated-knight | castro-code | mcd | 0.01 | 14855 | 0.02 |
+| decimated-knight | castro-code | rcsp | 0.00 | 65101 | 0.09 |
+| decimated-knight | castro-code | sphere | 0.00 | 23114 | 0.01 |
+| decimated-knight | castro-eq | grid | 0.29 | 65341 | 0.02 |
+| decimated-knight | castro-eq | mcd-asrun | 0.00 | 24267 | 0.04 |
+| decimated-knight | castro-eq | mcd | 0.00 | 32467 | 0.05 |
+| decimated-knight | castro-eq | rcsp | 0.00 | 49707 | 0.07 |
+| decimated-knight | castro-eq | sphere | 0.00 | 24004 | 0.02 |
+| decimated-knight | alexander | grid | 0.02 | 65341 | 0.70 |
+| decimated-knight | alexander | mcd-asrun | 0.00 | 4757 | 0.20 |
+| decimated-knight | alexander | mcd | 0.00 | 5044 | 0.22 |
+| decimated-knight | alexander | rcsp | 0.00 | 5184 | 0.25 |
+| decimated-knight | alexander | sphere | 0.00 | 21273 | 0.24 |
+| decimated-max | castro-code | grid | 0.00 | 65341 | 0.34 |
+| decimated-max | castro-code | mcd-asrun | 0.00 | 15550 | 0.20 |
+| decimated-max | castro-code | mcd | 0.00 | 15482 | 0.19 |
+| decimated-max | castro-code | rcsp | 0.00 | 16544 | 0.21 |
+| decimated-max | castro-code | sphere | 0.00 | 20383 | 0.09 |
+| decimated-max | castro-eq | grid | 0.01 | 65341 | 0.47 |
+| decimated-max | castro-eq | mcd-asrun | 0.00 | 17147 | 0.22 |
+| decimated-max | castro-eq | mcd | 0.00 | 18733 | 0.25 |
+| decimated-max | castro-eq | rcsp | 0.00 | 17206 | 0.22 |
+| decimated-max | castro-eq | sphere | 0.00 | 20393 | 0.13 |
+| decimated-max | alexander | grid | 0.43 | 65341 | 7.33 |
+| decimated-max | alexander | mcd-asrun | 0.00 | 4321 | 2.64 |
+| decimated-max | alexander | mcd | 0.00 | 4587 | 2.62 |
+| decimated-max | alexander | rcsp | 0.10 | 4867 | 3.10 |
+| decimated-max | alexander | sphere | 0.14 | 20921 | 2.60 |
+| heart | castro-code | grid | 0.07 | 65341 | 0.35 |
+| heart | castro-code | mcd-asrun | 0.02 | 16138 | 0.30 |
+| heart | castro-code | mcd | 0.01 | 14401 | 0.27 |
+| heart | castro-code | rcsp | 0.25 | 21445 | 0.40 |
+| heart | castro-code | sphere | 0.00 | 24811 | 0.19 |
+| heart | castro-eq | grid | 0.26 | 65341 | 0.50 |
+| heart | castro-eq | mcd-asrun | 0.00 | 15565 | 0.29 |
+| heart | castro-eq | mcd | 0.00 | 15878 | 0.28 |
+| heart | castro-eq | rcsp | 0.80 | 13281 | 0.24 |
+| heart | castro-eq | sphere | 0.00 | 24792 | 0.23 |
+| heart | alexander | grid | 0.83 | 65341 | 25.18 |
+| heart | alexander | mcd-asrun | 0.27 | 3825 | 12.30 |
+| heart | alexander | mcd | 0.27 | 4056 | 12.79 |
+| heart | alexander | rcsp | 0.30 | 3958 | 11.85 |
+| heart | alexander | sphere | 0.00 | 20819 | 9.86 |
+| skull | castro-code | grid | 0.23 | 65341 | 0.34 |
 | skull | castro-code | mcd-asrun | 0.28 | 19770 | 0.13 |
-| skull | castro-code | mcd | 0.00 | 16737 | 0.10 |
-| skull | castro-code | rcsp | 0.68 | 22518 | 0.14 |
-| skull | castro-code | sphere | 0.00 | 22927 | 0.11 |
-| skull | castro-eq | grid | 0.26 | 65341 | 0.43 |
+| skull | castro-code | mcd | 0.00 | 16737 | 0.11 |
+| skull | castro-code | rcsp | 0.68 | 22518 | 0.15 |
+| skull | castro-code | sphere | 0.00 | 22927 | 0.10 |
+| skull | castro-eq | grid | 0.26 | 65341 | 0.47 |
 | skull | castro-eq | mcd-asrun | 0.73 | 22195 | 0.14 |
 | skull | castro-eq | mcd | 0.01 | 16834 | 0.11 |
-| skull | castro-eq | rcsp | 0.07 | 82081 | 0.52 |
-| skull | castro-eq | sphere | 0.00 | 24814 | 0.13 |
-| skull | alexander | grid | 0.55 | 65341 | 4.17 |
-| skull | alexander | mcd-asrun | 0.40 | 4184 | 1.74 |
-| skull | alexander | mcd | 0.00 | 4118 | 4.33 |
-| skull | alexander | rcsp | 0.15 | 4602 | 4.57 |
-| skull | alexander | sphere | 0.22 | 20935 | 2.77 |
-| arm | ezair | ezair | 0.00 | 14058 | 7.64 |
-| arm | support-volume | ezair | 0.00 | 9966 | 15.68 |
-| bunny | ezair | ezair | 0.00 | 11957 | 11.59 |
-| bunny | support-volume | ezair | 0.00 | 9941 | 31.78 |
-| camel_b | ezair | ezair | 0.00 | 12292 | 8.50 |
-| camel_b | support-volume | ezair | 0.00 | 10730 | 27.95 |
-| cow | ezair | ezair | 0.00 | 9250 | 7.04 |
-| cow | support-volume | ezair | 0.00 | 10685 | 13.91 |
-| horse_quad | ezair | ezair | 0.00 | 11685 | 5.76 |
-| horse_quad | support-volume | ezair | 0.00 | 10926 | 14.99 |
-| decimated-knight | ezair | ezair | 0.00 | 10517 | 7.47 |
-| decimated-knight | support-volume | ezair | 0.00 | 10147 | 8.31 |
-| decimated-max | ezair | ezair | 0.00 | 11108 | 29.84 |
-| decimated-max | support-volume | ezair | 0.00 | 11063 | 37.46 |
-| heart | ezair | ezair | 0.00 | 11096 | 22.51 |
-| heart | support-volume | ezair | 0.00 | 10525 | 47.53 |
-| skull | ezair | ezair | 0.00 | 10137 | 13.77 |
-| skull | support-volume | ezair | 0.00 | 9149 | 25.84 |
-| arm | goguelin-len | sphere | 0.00 | 21241 | 2.82 |
-| arm | goguelin-vol | sphere | 0.00 | 20977 | 6.80 |
-| bunny | goguelin-len | sphere | 0.00 | 21039 | 1.50 |
-| bunny | goguelin-vol | sphere | 0.00 | 21010 | 3.83 |
-| camel_b | goguelin-len | sphere | 0.00 | 21272 | 1.07 |
-| camel_b | goguelin-vol | sphere | 0.00 | 21013 | 1.70 |
-| cow | goguelin-len | sphere | 0.00 | 20941 | 1.14 |
-| cow | goguelin-vol | sphere | 0.00 | 20849 | 2.98 |
+| skull | castro-eq | rcsp | 0.07 | 82081 | 0.53 |
+| skull | castro-eq | sphere | 0.00 | 24814 | 0.16 |
+| skull | alexander | grid | 0.55 | 65341 | 4.10 |
+| skull | alexander | mcd-asrun | 0.40 | 4184 | 1.58 |
+| skull | alexander | mcd | 0.00 | 4118 | 1.42 |
+| skull | alexander | rcsp | 0.15 | 4602 | 1.74 |
+| skull | alexander | sphere | 0.22 | 20935 | 1.41 |
+| arm | ezair | ezair | 0.00 | 14071 | 7.66 |
+| arm | support-volume | ezair | 0.00 | 9966 | 15.73 |
+| bunny | ezair | ezair | 0.00 | 11938 | 11.23 |
+| bunny | support-volume | ezair | 0.00 | 9941 | 28.96 |
+| camel_b | ezair | ezair | 0.00 | 12319 | 7.55 |
+| camel_b | support-volume | ezair | 0.00 | 10721 | 26.61 |
+| cow | ezair | ezair | 0.00 | 9250 | 6.81 |
+| cow | support-volume | ezair | 0.00 | 10690 | 13.35 |
+| horse_quad | ezair | ezair | 0.00 | 11689 | 5.60 |
+| horse_quad | support-volume | ezair | 0.00 | 10926 | 14.17 |
+| decimated-knight | ezair | ezair | 0.00 | 10499 | 7.51 |
+| decimated-knight | support-volume | ezair | 0.00 | 10147 | 8.27 |
+| decimated-max | ezair | ezair | 0.00 | 11104 | 15.41 |
+| decimated-max | support-volume | ezair | 0.00 | 11063 | 25.67 |
+| heart | ezair | ezair | 0.00 | 11109 | 22.94 |
+| heart | support-volume | ezair | 0.00 | 10525 | 49.27 |
+| skull | ezair | ezair | 0.00 | 10137 | 13.74 |
+| skull | support-volume | ezair | 0.00 | 9149 | 25.82 |
+| arm | goguelin-len | sphere | 0.00 | 21241 | 2.77 |
+| arm | goguelin-vol | sphere | 0.00 | 20977 | 6.82 |
+| bunny | goguelin-len | sphere | 0.00 | 21039 | 1.48 |
+| bunny | goguelin-vol | sphere | 0.00 | 21010 | 3.78 |
+| camel_b | goguelin-len | sphere | 0.00 | 21272 | 1.05 |
+| camel_b | goguelin-vol | sphere | 0.00 | 21013 | 1.68 |
+| cow | goguelin-len | sphere | 0.00 | 20941 | 1.12 |
+| cow | goguelin-vol | sphere | 0.00 | 20849 | 3.02 |
 | horse_quad | goguelin-len | sphere | 0.00 | 20877 | 0.84 |
-| horse_quad | goguelin-vol | sphere | 0.00 | 20936 | 2.14 |
-| decimated-knight | goguelin-len | sphere | 0.00 | 20856 | 0.20 |
-| decimated-knight | goguelin-vol | sphere | 0.00 | 20831 | 0.51 |
-| decimated-max | goguelin-len | sphere | 0.00 | 20951 | 2.00 |
-| decimated-max | goguelin-vol | sphere | 0.00 | 20943 | 5.18 |
-| heart | goguelin-len | sphere | 0.00 | 20806 | 4.89 |
-| heart | goguelin-vol | sphere | 0.00 | 20928 | 12.43 |
+| horse_quad | goguelin-vol | sphere | 0.00 | 20936 | 2.06 |
+| decimated-knight | goguelin-len | sphere | 0.00 | 20856 | 0.21 |
+| decimated-knight | goguelin-vol | sphere | 0.00 | 20831 | 0.50 |
+| decimated-max | goguelin-len | sphere | 0.00 | 20951 | 1.98 |
+| decimated-max | goguelin-vol | sphere | 0.00 | 20943 | 5.14 |
+| heart | goguelin-len | sphere | 0.00 | 20806 | 4.83 |
+| heart | goguelin-vol | sphere | 0.00 | 20928 | 12.47 |
 | skull | goguelin-len | sphere | 0.00 | 20794 | 1.01 |
-| skull | goguelin-vol | sphere | 0.00 | 20975 | 2.98 |
+| skull | goguelin-vol | sphere | 0.00 | 20975 | 2.97 |
 
 ## 3. Print estimates per pose
 
@@ -293,7 +293,7 @@ f relative to the best value found by any strategy for that (mesh, objective); 0
 | arm | tweaker3-sur | 18.4 | 264 | 514 | 0.61 | 8 | 1.00 | 0.37 | 23 |
 | bunny | initial | 46.5 | 1629 | 22711 | 6.85 | 74 | 10.24 | 4.33 | 171 |
 | bunny | castro-code | 43.8 | 1281 | 7142 | 5.88 | 64 | 8.12 | 2.14 | 147 |
-| bunny | castro-eq | 43.9 | 1279 | 7140 | 5.88 | 64 | 8.09 | 2.12 | 147 |
+| bunny | castro-eq | 44.2 | 1264 | 7148 | 5.88 | 64 | 8.12 | 2.15 | 147 |
 | bunny | alexander | 64.0 | 813 | 10612 | 6.09 | 68 | 9.82 | 3.98 | 166 |
 | bunny | ezair | 59.7 | 1430 | 6720 | 5.85 | 65 | 8.16 | 2.35 | 141 |
 | bunny | support-volume | 47.2 | 1064 | 5986 | 5.80 | 63 | 8.23 | 2.27 | 151 |
@@ -303,7 +303,7 @@ f relative to the best value found by any strategy for that (mesh, objective); 0
 | bunny | tweaker3-sur | 47.8 | 1558 | 16040 | 6.43 | 70 | 9.79 | 3.84 | 168 |
 | camel_b | initial | 60.0 | 494 | 5386 | 2.38 | 31 | 4.51 | 2.37 | 87 |
 | camel_b | castro-code | 18.5 | 1147 | 3418 | 2.26 | 25 | 3.96 | 1.91 | 80 |
-| camel_b | castro-eq | 18.5 | 1175 | 3590 | 2.27 | 25 | 3.99 | 1.94 | 82 |
+| camel_b | castro-eq | 18.5 | 1147 | 3442 | 2.26 | 25 | 3.97 | 1.92 | 80 |
 | camel_b | alexander | 60.5 | 312 | 3430 | 2.26 | 30 | 4.23 | 2.00 | 94 |
 | camel_b | ezair | 18.5 | 1147 | 3448 | 2.26 | 25 | 3.94 | 1.89 | 80 |
 | camel_b | support-volume | 57.9 | 340 | 2586 | 2.21 | 29 | 4.12 | 1.94 | 91 |
@@ -322,8 +322,8 @@ f relative to the best value found by any strategy for that (mesh, objective); 0
 | cow | tweaker3-vol | 36.7 | 471 | 5250 | 2.10 | 25 | 3.42 | 1.63 | 63 |
 | cow | tweaker3-sur | 36.7 | 423 | 2057 | 1.90 | 23 | 2.70 | 0.91 | 57 |
 | horse_quad | initial | 27.5 | 892 | 3973 | 2.02 | 23 | 3.54 | 1.62 | 70 |
-| horse_quad | castro-code | 44.7 | 460 | 1367 | 1.86 | 24 | 2.44 | 0.57 | 56 |
-| horse_quad | castro-eq | 44.7 | 462 | 1357 | 1.86 | 24 | 2.43 | 0.57 | 55 |
+| horse_quad | castro-code | 44.7 | 461 | 1372 | 1.86 | 24 | 2.44 | 0.57 | 56 |
+| horse_quad | castro-eq | 44.7 | 463 | 1382 | 1.86 | 24 | 2.44 | 0.57 | 56 |
 | horse_quad | alexander | 73.0 | 224 | 4506 | 2.05 | 29 | 4.40 | 2.40 | 84 |
 | horse_quad | ezair | 44.9 | 468 | 1476 | 1.86 | 24 | 2.44 | 0.58 | 56 |
 | horse_quad | support-volume | 44.7 | 459 | 1360 | 1.86 | 24 | 2.44 | 0.58 | 56 |
@@ -340,7 +340,7 @@ f relative to the best value found by any strategy for that (mesh, objective); 0
 | decimated-knight | goguelin-len | 18.9 | 822 | 2454 | 1.89 | 21 | 3.10 | 1.22 | 67 |
 | decimated-knight | goguelin-vol | 18.9 | 822 | 2454 | 1.89 | 21 | 3.10 | 1.22 | 67 |
 | decimated-knight | tweaker3-vol | 60.0 | 300 | 2983 | 1.93 | 27 | 4.51 | 2.29 | 102 |
-| decimated-knight | tweaker3-sur | 42.1 | 619 | 4844 | 2.04 | 25 | 4.33 | 2.14 | 98 |
+| decimated-knight | tweaker3-sur | 60.0 | 300 | 2983 | 1.93 | 27 | 4.51 | 2.29 | 102 |
 | decimated-max | initial | 43.1 | 854 | 8176 | 4.32 | 48 | 6.22 | 2.14 | 101 |
 | decimated-max | castro-code | 59.7 | 542 | 1208 | 3.89 | 46 | 4.65 | 0.71 | 75 |
 | decimated-max | castro-eq | 59.7 | 542 | 1203 | 3.88 | 46 | 4.65 | 0.71 | 75 |
@@ -352,7 +352,7 @@ f relative to the best value found by any strategy for that (mesh, objective); 0
 | decimated-max | tweaker3-vol | 57.6 | 588 | 1552 | 3.91 | 46 | 5.13 | 1.11 | 84 |
 | decimated-max | tweaker3-sur | 57.6 | 588 | 1552 | 3.91 | 46 | 5.13 | 1.11 | 84 |
 | heart | initial | 42.4 | 2797 | 35185 | 4.30 | 48 | 7.77 | 5.66 | 139 |
-| heart | castro-code | 34.8 | 2520 | 23529 | 3.58 | 40 | 6.50 | 4.38 | 123 |
+| heart | castro-code | 34.8 | 2519 | 23499 | 3.57 | 40 | 6.50 | 4.38 | 123 |
 | heart | castro-eq | 34.8 | 2516 | 23379 | 3.57 | 40 | 6.46 | 4.35 | 122 |
 | heart | alexander | 60.4 | 1371 | 19273 | 3.31 | 40 | 6.76 | 4.71 | 126 |
 | heart | ezair | 34.8 | 2516 | 23372 | 3.57 | 40 | 6.46 | 4.35 | 122 |
@@ -361,16 +361,16 @@ f relative to the best value found by any strategy for that (mesh, objective); 0
 | heart | goguelin-vol | 56.4 | 1505 | 18284 | 3.25 | 39 | 6.67 | 4.61 | 128 |
 | heart | tweaker3-vol | 49.6 | 2339 | 28196 | 3.87 | 44 | 7.58 | 5.50 | 138 |
 | heart | tweaker3-sur | 49.6 | 2339 | 28196 | 3.87 | 44 | 7.58 | 5.50 | 138 |
-| skull | initial | 53.7 | 1206 | 8337 | 6.90 | 75 | 10.99 | 3.93 | 196 |
-| skull | castro-code | 51.0 | 1221 | 6208 | 6.77 | 73 | 9.85 | 2.83 | 176 |
-| skull | castro-eq | 50.3 | 1301 | 5984 | 6.76 | 73 | 9.18 | 2.64 | 164 |
-| skull | alexander | 67.7 | 894 | 3513 | 6.60 | 74 | 8.44 | 1.87 | 157 |
+| skull | initial | 53.7 | 1206 | 8337 | 6.90 | 75 | 11.02 | 3.89 | 197 |
+| skull | castro-code | 51.0 | 1226 | 6355 | 6.78 | 74 | 9.85 | 2.83 | 176 |
+| skull | castro-eq | 50.3 | 1303 | 6009 | 6.76 | 73 | 9.71 | 2.71 | 174 |
+| skull | alexander | 67.7 | 894 | 3513 | 6.60 | 74 | 8.43 | 1.87 | 156 |
 | skull | ezair | 60.1 | 1349 | 4732 | 6.68 | 74 | 10.78 | 3.35 | 199 |
-| skull | support-volume | 68.6 | 913 | 3414 | 6.59 | 74 | 8.49 | 1.91 | 158 |
-| skull | goguelin-len | 50.5 | 1229 | 6012 | 6.76 | 73 | 9.14 | 2.59 | 164 |
-| skull | goguelin-vol | 50.5 | 1229 | 5961 | 6.76 | 73 | 10.90 | 3.53 | 195 |
+| skull | support-volume | 68.6 | 913 | 3414 | 6.59 | 74 | 8.49 | 1.90 | 158 |
+| skull | goguelin-len | 50.5 | 1229 | 6012 | 6.76 | 73 | 9.14 | 2.59 | 163 |
+| skull | goguelin-vol | 50.5 | 1229 | 5961 | 6.76 | 73 | 9.14 | 2.60 | 163 |
 | skull | tweaker3-vol | 56.2 | 1500 | 7758 | 6.86 | 75 | 10.26 | 3.34 | 182 |
-| skull | tweaker3-sur | 47.7 | 1943 | 13685 | 7.24 | 78 | 12.51 | 4.80 | 222 |
+| skull | tweaker3-sur | 47.7 | 1943 | 13685 | 7.24 | 78 | 12.52 | 4.80 | 223 |
 
 ## 3b. Summary per method (PrusaSlicer estimates)
 
@@ -379,12 +379,12 @@ Median over meshes of the reduction relative to the initial pose; in parentheses
 | method | support filament | print time | total filament |
 |---|---|---|---|
 | alexander | -15.6% (1/9) | +2.0% (1/9) | -6.1% (1/9) |
-| castro-code | -45.2% (0/9) | -14.0% (2/9) | -20.7% (0/9) |
-| castro-eq | -45.2% (4/9) | -14.3% (2/9) | -21.0% (3/9) |
+| castro-code | -45.2% (1/9) | -14.0% (2/9) | -20.7% (1/9) |
+| castro-eq | -45.2% (3/9) | -14.0% (2/9) | -20.7% (2/9) |
 | ezair | -45.2% (2/9) | -13.3% (4/9) | -18.0% (3/9) |
 | goguelin-len | -45.5% (1/9) | -12.4% (1/9) | -18.8% (1/9) |
-| goguelin-vol | -48.3% (0/9) | -8.2% (0/9) | -19.9% (0/9) |
-| support-volume | -51.5% (1/9) | -12.0% (1/9) | -19.6% (1/9) |
+| goguelin-vol | -48.3% (0/9) | -12.4% (0/9) | -19.9% (0/9) |
+| support-volume | -51.1% (1/9) | -12.0% (1/9) | -19.6% (1/9) |
 | tweaker3-sur | -3.7% (0/9) | -0.6% (0/9) | -4.1% (0/9) |
 | tweaker3-vol | -0.0% (0/9) | -1.5% (0/9) | -0.1% (0/9) |
 
@@ -392,7 +392,7 @@ Median over meshes of the reduction relative to the initial pose; in parentheses
 
 Spearman rank correlation over all (mesh, pose) pairs, pooled; and per mesh the fraction of pose pairs ordered the same way (support).
 
-- support: Spearman ρ = 0.958 (n = 90)
-- total filament: Spearman ρ = 0.967 (n = 90)
+- support: Spearman ρ = 0.955 (n = 90)
+- total filament: Spearman ρ = 0.966 (n = 90)
 - time: Spearman ρ = 0.911 (n = 90)
-- within-mesh pairwise agreement on support: 302/405
+- within-mesh pairwise agreement on support: 298/405

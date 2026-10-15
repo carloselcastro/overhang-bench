@@ -80,6 +80,7 @@ that the right C++ runtime DLLs are found.
 | `scripts/analyze.py` | report: reproduction check, search comparison, per-method summary, proxy vs. slicer |
 | `scripts/latex_table.py` | LaTeX (booktabs) table of the slicer estimates per mesh and method |
 | `scripts/plot_angle_sweep.py` | figure: median change in support and time vs. overhang angle, per method |
+| `scripts/make_figures.py` | Figures 6–10 of the paper: Knight landscape, local minima (sliced), multistart starts and minima, renders via `viewer --figure` |
 | `scripts/find_prerotation.py` | finds the pre-rotation that reproduces the dissertation's frame for a mesh |
 
 ## Build
@@ -132,9 +133,9 @@ python scripts/find_prerotation.py meshes/decimated-knight.off --t1 -1.4726 --t2
 
 ```powershell
 $PRUSA = "C:\Program Files\Prusa3D\PrusaSlicer\prusa-slicer-console.exe"
-python scripts\pipeline.py run --out results --prusa $PRUSA --tweaker ..\Tweaker-3\Tweaker.py
+python scripts\pipeline.py run --out results --prusa $PRUSA --tweaker ..\Tweaker-3\Tweaker.py --slicer-threads 1
 #   add  --orca "C:\Program Files\OrcaSlicer\orca-slicer.exe"  for OrcaSlicer's auto-orient
-python scripts\pipeline.py sweep --base results --out results_sweep --prusa $PRUSA --tweaker ..\Tweaker-3\Tweaker.py
+python scripts\pipeline.py sweep --base results --out results_sweep --prusa $PRUSA --tweaker ..\Tweaker-3\Tweaker.py --slicer-threads 1
 ```
 
 `run` writes to `results/`: `orientations.csv` (every objective × search),
@@ -145,13 +146,25 @@ evaluation for part sizes 40/60/100 mm and overhang angles 40/45/50° and writes
 what is re-optimized per configuration. Options: `--size-mm`,
 `--overhang-deg`, `--meshes arm,cow`, `--jobs N` (parallel slicing).
 
+**Slicer determinism.** Multithreaded PrusaSlicer 2.9.6 is not deterministic on
+some meshes: slicing the initial skull four times at a 60° overhang angle gave
+support filament between 2.62 and 3.03 m. With `--slicer-threads 1` the
+same four slicings were identical, so all published numbers use it (raise
+`--jobs` to make up for it).
+
+**Pose of the proposed method.** The sliced pose of `castro-eq` and
+`castro-code` is the best minimizer of the two multistart strategies of the
+paper (`mcd`, `rcsp`); `grid`, `mcd-asrun` and `sphere` are run only for
+comparison (`POSE_SEARCHES` in `pipeline.py`). Every other objective uses the
+best result of its own searches.
+
 **Support-angle sweep.** The overhang angle is a user setting of the slicer.
 `--overhang-deg` is measured from the vertical; the slicer script converts it
 to PrusaSlicer's `support_material_threshold` (measured from the horizontal) as
 90 − value. To test 20–60°:
 
 ```powershell
-python scripts\pipeline.py sweep --base results --out results_angles --sizes 60 --angles 20,25,30,35,40,45,50,55,60 --prusa $PRUSA --tweaker ..\Tweaker-3\Tweaker.py
+python scripts\pipeline.py sweep --base results --out results_angles --sizes 60 --angles 20,25,30,35,40,45,50,55,60 --prusa $PRUSA --tweaker ..\Tweaker-3\Tweaker.py --slicer-threads 1
 python scripts\plot_angle_sweep.py results_angles\sweep_summary.csv --out fig_angle_sweep
 ```
 `castro-*` and `ezair` have no angle parameter (same pose for every angle);

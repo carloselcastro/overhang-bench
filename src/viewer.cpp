@@ -5,6 +5,8 @@
 //          [--orientations results/orientations.csv] (optimizers only)
 //          [--prusaslicer results/prusaslicer.csv]
 //          [--screenshots DIR]     (headless: write PNGs and exit)
+//          [--figure] [--color R,G,B]  (with --screenshots: the part only, in one
+//                                       colour, on a transparent background)
 //
 // Shows, for the initial pose and the best pose of each objective:
 //   * the part on the build plate, faces coloured by "needs support"
@@ -109,6 +111,8 @@ Landscape make_landscape(int n1, int n2, const Vector3d& c_sphere, double r,
 int main(int argc, char** argv) {
   std::string mesh_arg, orient_csv, slicer_csv, shots, backend, poses_csv;
   double size_mm = 60, overhang = 45;
+  bool figure = false;
+  glm::vec3 color(0.45f, 0.80f, 0.68f);
   for (int i = 1; i < argc; ++i) {
     std::string a = argv[i];
     auto next = [&]() { return std::string(argv[++i]); };
@@ -119,6 +123,8 @@ int main(int argc, char** argv) {
     else if (a == "--prusaslicer") slicer_csv = next();
     else if (a == "--screenshots") shots = next();
     else if (a == "--backend") backend = next();
+    else if (a == "--figure") figure = true;
+    else if (a == "--color") { const auto c = csv_split(next()); color = {std::stof(c[0]), std::stof(c[1]), std::stof(c[2])}; }
     else mesh_arg = a;
   }
   if (mesh_arg.empty()) {
@@ -179,9 +185,12 @@ int main(int argc, char** argv) {
         land[k](i * L.n2 + j) = objs[k]->eval_angles(-kPi + 2 * kPi * i / (L.n1 - 1),
                                                      -kPi / 2 + kPi * j / (L.n2 - 1));
   };
-  auto* sph = polyscope::registerSurfaceMesh("f on S^2", L.S, L.F);
-  auto* pln = polyscope::registerSurfaceMesh("f on (t1,t2)", L.P, L.F);
-  sph->setEdgeWidth(0); pln->setEdgeWidth(0);
+  polyscope::SurfaceMesh *sph = nullptr, *pln = nullptr;
+  if (!figure) {
+    sph = polyscope::registerSurfaceMesh("f on S^2", L.S, L.F);
+    pln = polyscope::registerSurfaceMesh("f on (t1,t2)", L.P, L.F);
+    sph->setEdgeWidth(0); pln->setEdgeWidth(0);
+  }
   // optima markers
   MatrixXd mk_s(poses.size(), 3), mk_p(poses.size(), 3);
   for (size_t k = 0; k < poses.size(); ++k) {
@@ -190,12 +199,15 @@ int main(int argc, char** argv) {
     mk_p.row(k) = Vector3d(0, 1.6 * size_mm, 0.45 * size_mm) +
                   Vector3d(1.4 * size_mm * poses[k].t1 / (2 * kPi), -0.5, 1.4 * size_mm * poses[k].t2 / (2 * kPi));
   }
-  auto* pts_s = polyscope::registerPointCloud("optima (S^2)", mk_s);
-  auto* pts_p = polyscope::registerPointCloud("optima (t1,t2)", mk_p);
-  pts_s->setPointRadius(0.012); pts_p->setPointRadius(0.012);
+  if (!figure) {
+    auto* pts_s = polyscope::registerPointCloud("optima (S^2)", mk_s);
+    auto* pts_p = polyscope::registerPointCloud("optima (t1,t2)", mk_p);
+    pts_s->setPointRadius(0.012); pts_p->setPointRadius(0.012);
+  }
 
   int cur_obj = 0, cur_pose = 1 % int(poses.size());
   auto show_landscape = [&]() {
+    if (figure) return;
     compute_landscape(cur_obj);
     sph->addVertexScalarQuantity("f", land[cur_obj])->setColorMap("viridis")->setEnabled(true);
     pln->addVertexScalarQuantity("f", land[cur_obj])->setColorMap("viridis")->setEnabled(true);
@@ -223,6 +235,7 @@ int main(int argc, char** argv) {
       const Vector3d n = (b - a).cross(c - a).normalized();
       flag(f) = n.z() < thr ? 1.0 : 0.0;
     }
+    if (figure) { pm->setSurfaceColor(color); pm->setSmoothShade(true); return; }
     pm->addFaceScalarQuantity("needs support", flag)->setColorMap("reds")->setEnabled(true);
     MatrixXd N(cols.size(), 3); MatrixXi E(cols.size() / 2, 2);
     for (size_t k = 0; k < cols.size(); ++k) N.row(k) = cols[k];
@@ -272,8 +285,15 @@ int main(int argc, char** argv) {
     for (cur_pose = 0; cur_pose < int(poses.size()); ++cur_pose) {
       show_pose();
       const float s = float(size_mm);
-      polyscope::view::lookAt(glm::vec3(0.6f * s, -2.9f * s, 0.9f * s), glm::vec3(-0.45f * s, 0.5f * s, 0.35f * s));
-      polyscope::screenshot(shots + "/" + M.name + "__" + poses[cur_pose].name + ".png", false);
+      if (figure) {  // frame the part alone, seen from the front and slightly above
+        const MatrixXd W = place_on_plate(M, poses[cur_pose].t1, poses[cur_pose].t2, scale);
+        const Vector3d lo = W.colwise().minCoeff(), hi = W.colwise().maxCoeff(), c = 0.5 * (lo + hi);
+        const glm::vec3 C(float(c.x()), float(c.y()), float(c.z()));
+        polyscope::view::lookAt(C + glm::vec3(0.75f * s, -2.4f * s, 1.0f * s), C);
+      } else {
+        polyscope::view::lookAt(glm::vec3(0.6f * s, -2.9f * s, 0.9f * s), glm::vec3(-0.45f * s, 0.5f * s, 0.35f * s));
+      }
+      polyscope::screenshot(shots + "/" + M.name + "__" + poses[cur_pose].name + ".png", figure);
     }
     return 0;
   }
