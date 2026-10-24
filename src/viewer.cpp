@@ -7,6 +7,10 @@
 //          [--screenshots DIR]     (headless: write PNGs and exit)
 //          [--figure] [--color R,G,B]  (with --screenshots: the part only, in one
 //                                       colour, on a transparent background)
+//          [--support-paths DIR]   (with --figure: also draw the slicer's support
+//                                   toolpaths DIR/MESH__POSE.csv, written by
+//                                   scripts/support_paths.py)
+//          [--view-yaw DEG]        (with --figure: orbit the camera about z)
 //          [--compare]             (all poses side by side; with --screenshots
 //                                   writes a single MESH__compare.png)
 //
@@ -93,6 +97,26 @@ std::map<std::string, SlicerRow> read_slicer(const std::string& path, const std:
   return out;
 }
 
+// toolpath segments x0,y0,z0,x1,y1,z1 (scripts/support_paths.py) as a curve network
+bool read_segments(const std::string& path, MatrixXd& N, MatrixXi& E) {
+  std::ifstream in(path); std::string line;
+  if (!std::getline(in, line)) return false;
+  std::vector<double> v;
+  while (std::getline(in, line)) {
+    const auto c = csv_split(line);
+    if (c.size() < 6) continue;
+    for (int k = 0; k < 6; ++k) v.push_back(std::stod(c[k]));
+  }
+  const int n = int(v.size() / 6);
+  N.resize(2 * n, 3); E.resize(n, 2);
+  for (int i = 0; i < n; ++i) {
+    N.row(2 * i) << v[6 * i], v[6 * i + 1], v[6 * i + 2];
+    N.row(2 * i + 1) << v[6 * i + 3], v[6 * i + 4], v[6 * i + 5];
+    E.row(i) << 2 * i, 2 * i + 1;
+  }
+  return n > 0;
+}
+
 // (t1,t2) grid, as a sphere through d(t1,t2) and as a flat rectangle
 struct Landscape { MatrixXd S, P; MatrixXi F; int n1, n2; };
 Landscape make_landscape(int n1, int n2, const Vector3d& c_sphere, double r,
@@ -118,8 +142,8 @@ Landscape make_landscape(int n1, int n2, const Vector3d& c_sphere, double r,
 }  // namespace
 
 int main(int argc, char** argv) {
-  std::string mesh_arg, orient_csv, slicer_csv, shots, backend, poses_csv;
-  double size_mm = 60, overhang = 45;
+  std::string mesh_arg, orient_csv, slicer_csv, shots, backend, poses_csv, support_dir;
+  double size_mm = 60, overhang = 45, yaw_deg = 0;
   bool figure = false, compare = false;
   glm::vec3 color(0.45f, 0.80f, 0.68f);
   for (int i = 1; i < argc; ++i) {
@@ -134,13 +158,15 @@ int main(int argc, char** argv) {
     else if (a == "--backend") backend = next();
     else if (a == "--figure") figure = true;
     else if (a == "--compare") compare = true;
+    else if (a == "--support-paths") support_dir = next();
+    else if (a == "--view-yaw") yaw_deg = std::stod(next());
     else if (a == "--color") { const auto c = csv_split(next()); color = {std::stof(c[0]), std::stof(c[1]), std::stof(c[2])}; }
     else mesh_arg = a;
   }
   if (mesh_arg.empty()) {
     std::cerr << "usage: viewer MESH[@rx90,...] [--size-mm S] [--overhang-deg A] "
                  "[--poses all_poses.csv | --orientations CSV] [--prusaslicer CSV] [--screenshots DIR]\n"
-                 "              [--figure] [--color R,G,B] [--compare]\n";
+                 "              [--figure] [--color R,G,B] [--support-paths DIR] [--view-yaw DEG] [--compare]\n";
     return 1;
   }
   const auto at = mesh_arg.find('@');
@@ -180,6 +206,11 @@ int main(int argc, char** argv) {
   polyscope::options::groundPlaneMode = polyscope::GroundPlaneMode::ShadowOnly;
   polyscope::view::setUpDir(polyscope::UpDir::ZUp);
   polyscope::view::setFrontDir(polyscope::FrontDir::NegYFront);
+  if (figure && !shots.empty()) {  // print-resolution renders, antialiased thin toolpaths
+    polyscope::options::usePrefsFile = false;  // else the saved window size wins
+    polyscope::view::windowWidth = 3000; polyscope::view::windowHeight = 1150;
+    polyscope::options::ssaaFactor = 2;
+  }
   polyscope::init(backend);  // "" = auto; "openGL3_egl" for headless GPUs
 
   // --- landscapes (one per objective, only the selected one is shown)
@@ -246,7 +277,17 @@ int main(int argc, char** argv) {
       const Vector3d n = (b - a).cross(c - a).normalized();
       flag(f) = n.z() < thr ? 1.0 : 0.0;
     }
-    if (figure) { pm->setSurfaceColor(color); pm->setSmoothShade(true); return; }
+    if (figure) {
+      pm->setSurfaceColor(color); pm->setSmoothShade(true);
+      if (polyscope::hasCurveNetwork("slicer supports")) polyscope::removeCurveNetwork("slicer supports");
+      MatrixXd SN; MatrixXi SE;
+      if (!support_dir.empty() && read_segments(support_dir + "/" + M.name + "__" + P.name + ".csv", SN, SE)) {
+        auto* cn = polyscope::registerCurveNetwork("slicer supports", SN, SE);
+        cn->setRadius(0.2, false);  // half the 0.4 mm extrusion width
+        cn->setColor({0.80f, 0.78f, 0.74f});
+      }
+      return;
+    }
     pm->addFaceScalarQuantity("needs support", flag)->setColorMap("reds")->setEnabled(true);
     MatrixXd N(cols.size(), 3); MatrixXi E(cols.size() / 2, 2);
     for (size_t k = 0; k < cols.size(); ++k) N.row(k) = cols[k];
@@ -434,7 +475,11 @@ int main(int argc, char** argv) {
         const MatrixXd W = place_on_plate(M, poses[cur_pose].t1, poses[cur_pose].t2, scale);
         const Vector3d lo = W.colwise().minCoeff(), hi = W.colwise().maxCoeff(), c = 0.5 * (lo + hi);
         const glm::vec3 C(float(c.x()), float(c.y()), float(c.z()));
-        polyscope::view::lookAt(C + glm::vec3(0.75f * s, -2.4f * s, 1.0f * s), C);
+        // --view-yaw: camera orbited about the vertical axis (a rotation about z
+        // does not change what the slicer prints, only which side is seen)
+        const float cy = std::cos(float(yaw_deg * kPi / 180)), sy = std::sin(float(yaw_deg * kPi / 180));
+        const float ex = 0.75f * s, ey = -2.4f * s;
+        polyscope::view::lookAt(C + glm::vec3(cy * ex - sy * ey, sy * ex + cy * ey, 1.0f * s), C);
       } else {
         polyscope::view::lookAt(glm::vec3(0.6f * s, -2.9f * s, 0.9f * s), glm::vec3(-0.45f * s, 0.5f * s, 0.35f * s));
       }

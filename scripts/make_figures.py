@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figures 6-10 of the paper (Knight landscape, local minima, multistart, renders).
+"""Figures 5-10 and 12 of the paper (Knight landscape, local minima, multistart, renders).
 
     python scripts/make_figures.py --out figures --prusa PATH [--results results]
 
@@ -10,6 +10,10 @@ Writes to --out:
   multistart_rcsp.pdf    R.C.S.P. starting points and where they converge (Fig. 9)
   surfaces_opt.pdf       usual orientation vs. ours for four meshes (Fig. 10)
   knight_minima.csv      PrusaSlicer estimates of the two poses of Fig. 7
+  cow_eq4.pdf            Cow, usual orientation vs. the minimizer of Eq. (4), with PrusaSlicer's
+                         supports (Fig. 5)
+  cow_alexander.pdf      Cow, ours vs. Alexander et al., with PrusaSlicer's supports (Fig. 12)
+  cow_poses.csv          PrusaSlicer estimates of the Cow poses of Figs. 5 and 12
 
 Everything is computed here with the code of the repository: the local runs
 come from `bench --local-minima` (the same L-BFGS-B multistarts as Table 1),
@@ -134,9 +138,27 @@ def plot_multistart(t1, t2, Z, runs, search, best, out, grid):
     plt.close(fig)
 
 
-def render(viewer, mesh, poses_csv, rgb, outdir):
+def eq4_minimizer(mesh_path, overhang_deg):
+    """(t1, t2) minimizing Eq. (4), sum_f (d . n_f)^2 over unit normals.
+
+    The minimum is the eigenvector of sum_f n_f n_f^T with the smallest
+    eigenvalue, up to sign; of the two build directions +-d we keep the one
+    with the smaller overhang area, i.e. the fewest apparent overhangs.
+    """
+    V, F = load(str(mesh_path))
+    N = np.cross(V[F[:, 1]] - V[F[:, 0]], V[F[:, 2]] - V[F[:, 0]])
+    A = 0.5 * np.linalg.norm(N, axis=1)
+    N /= np.linalg.norm(N, axis=1, keepdims=True)
+    d = np.linalg.eigh(N.T @ N)[1][:, 0]
+    thr = -math.sin(math.radians(overhang_deg))
+    d = min((d, -d), key=lambda e: A[N @ e < thr].sum())
+    return math.atan2(d[1], d[2]), -math.asin(d[0])  # inverse of direction()
+
+
+def render(viewer, mesh, poses_csv, rgb, outdir, yaw=0):
     outdir.mkdir(parents=True, exist_ok=True)
-    sh([viewer, mesh, "--poses", poses_csv, "--figure", "--color", rgb, "--screenshots", outdir])
+    sh([viewer, mesh, "--poses", poses_csv, "--figure", "--color", rgb, "--view-yaw", yaw,
+        "--screenshots", outdir])
 
 
 def crop_group(paths):
@@ -232,17 +254,53 @@ def main():
         w = csv.writer(f); w.writerow(["mesh", "pose", "t1", "t2"])
         for r in poses:
             w.writerow([r["mesh"], "ours", r["t1"], r["t2"]])
-    cols = [("decimated-knight", "decimated-knight.off"), ("horse_quad", "horse_quad.obj"),
-            ("bunny", "bunny.off"), ("arm", "arm.obj")]
+    # (mesh, file, camera yaw in degrees): the yaw only chooses the side that is
+    # seen (the Bunny's head instead of its open base; Max in profile)
+    cols = [("decimated-max", "decimated-max.obj", 270), ("horse_quad", "horse_quad.obj", 0),
+            ("bunny", "bunny.off", 90), ("arm", "arm.obj", 0)]
     top, bottom = [], []
-    for name, file in cols:
-        render(viewer, ROOT / "meshes" / file, pe, OTHER_RGB, tmp / "r10_other")
-        render(viewer, ROOT / "meshes" / file, pe, OURS_RGB, tmp / "r10_ours")
+    for name, file, yaw in cols:
+        render(viewer, ROOT / "meshes" / file, pe, OTHER_RGB, tmp / "r10_other", yaw)
+        render(viewer, ROOT / "meshes" / file, pe, OURS_RGB, tmp / "r10_ours", yaw)
         u, o = crop_group([tmp / "r10_other" / f"{name}__initial.png", tmp / "r10_ours" / f"{name}__ours.png"])
         top.append(u); bottom.append(o)
     compose([top, bottom], out / "surfaces_opt.pdf", row_labels=["Usual orientation", "Ours"])
+
+    # Figs. 5 and 12 on the Cow, with the supports PrusaSlicer generates:
+    #   Fig. 5: usual orientation (a) and the minimizer of the unweighted Eq. (4) (b)
+    #   Fig. 12: ours (a) and Alexander et al. (b)
+    cow = ROOT / "meshes" / "cow.off"
+    c = tmp / "cow"; c.mkdir(exist_ok=True)
+    for f in ("print_proxy.csv", "poses_eval.csv"):
+        (c / f).unlink(missing_ok=True)
+    cow_poses = {r["pose"]: r for r in csv.DictReader(open(Path(a.results) / "all_poses.csv", encoding="utf-8"))
+                 if r["mesh"] == "cow"}
+    pcow = tmp / "cow_poses.csv"
+    with open(pcow, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f); w.writerow(["mesh", "pose", "t1", "t2"])
+        w.writerow(["cow", "initial", 0, 0])
+        for p in ("castro-eq", "alexander"):
+            w.writerow(["cow", p, cow_poses[p]["t1"], cow_poses[p]["t2"]])
+        w.writerow(["cow", "eq4", *eq4_minimizer(cow, a.overhang_deg)])
+    sh([bench, "--out", c, "--searches", "none", "--poses", pcow, "--overhang-deg", a.overhang_deg, cow])
+    sh([PY, SCR / "slice_prusaslicer.py", c / "stl", out / "cow_poses.csv", "--exe", a.prusa,
+        "--overhang-deg", a.overhang_deg, "--threads", "1", "--jobs", "2", "--keep-gcode", c / "gcode"])
+    (c / "paths").mkdir(exist_ok=True)
+    for p in ("initial", "eq4", "castro-eq", "alexander"):
+        sh([PY, SCR / "support_paths.py", c / "gcode" / f"cow__{p}.gcode", c / "stl" / f"cow__{p}.stl",
+            c / "paths" / f"cow__{p}.csv"])
+    for rgb, d in ((OURS_RGB, "rcow_ours"), (OTHER_RGB, "rcow_other")):
+        (tmp / d).mkdir(exist_ok=True)
+        sh([viewer, cow, "--poses", pcow, "--figure", "--color", rgb, "--support-paths", c / "paths",
+            "--screenshots", tmp / d])
+    def cow_png(p):  # teal for our orientation, pink for any other
+        return tmp / ("rcow_ours" if p == "castro-eq" else "rcow_other") / f"cow__{p}.png"
+    for (pa, pb), name in ((("initial", "eq4"), "cow_eq4.pdf"), (("castro-eq", "alexander"), "cow_alexander.pdf")):
+        compose([crop_group([cow_png(pa), cow_png(pb)])], out / name, col_labels=["(a)", "(b)"],
+                width=3.6, fontsize=10)
     print("wrote", ", ".join(str(out / f) for f in ("knight_landscape.pdf", "knight_minima.pdf",
-          "multistart_mcd.pdf", "multistart_rcsp.pdf", "surfaces_opt.pdf", "knight_minima.csv")))
+          "multistart_mcd.pdf", "multistart_rcsp.pdf", "surfaces_opt.pdf", "knight_minima.csv",
+          "cow_eq4.pdf", "cow_alexander.pdf", "cow_poses.csv")))
 
 
 if __name__ == "__main__":

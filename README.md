@@ -113,8 +113,10 @@ that the right C++ runtime DLLs are found.
 | `scripts/run_tweaker.py`, `scripts/run_orca.py` | external baselines (Tweaker-3, OrcaSlicer/Bambu Studio auto-orient) |
 | `scripts/analyze.py` | report: reproduction check, search comparison, per-method summary, proxy vs. slicer |
 | `scripts/latex_table.py` | LaTeX (booktabs) table of the slicer estimates per mesh and method |
+| `scripts/head_to_head.py` | Table 4 of the paper: our orientation against each other method (median difference, less/equal/more counts, totals); `--text` lists the per-mesh values |
 | `scripts/plot_angle_sweep.py` | figure: median change in support and time vs. overhang angle, per method |
-| `scripts/make_figures.py` | Figures 6–10 of the paper: Knight landscape, local minima (sliced), multistart starts and minima, renders via `viewer --figure` |
+| `scripts/make_figures.py` | Figures 5–10 and 12 of the paper: Knight landscape, local minima (sliced), multistart starts and minima, renders via `viewer --figure` (Figs. 5 and 12 with PrusaSlicer's own supports) |
+| `scripts/support_paths.py` | support toolpaths of a PrusaSlicer G-code in the frame of the sliced STL, for `viewer --figure --support-paths DIR` |
 | `scripts/compare_poses.py` | side-by-side renders of the pose of every method, per mesh, with the PrusaSlicer estimates |
 | `scripts/find_prerotation.py` | finds the pre-rotation that reproduces the dissertation's frame for a mesh |
 
